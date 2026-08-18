@@ -6,7 +6,7 @@
 
 def registro_movimientos(tipo):
     """Registra los movimientos en listas, dependiendo el tipo"""
-    
+
 
 def calculo_movimientos():
     """Calcula matemáticamente los movimientos, ya sean ingresos o gastos"""
@@ -19,3 +19,8 @@ def consulta_de_movimientos():
 
 def validacion_de_monto():
     """Controla si el monto ingresado es correcto y no es un string, un número negativo, etc"""
+
+"""Main"""
+
+lista_ingresos = []
+lista_gastos = []
