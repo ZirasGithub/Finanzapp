@@ -6,21 +6,69 @@
 
 def registro_movimientos(tipo):
     """Registra los movimientos en listas, dependiendo el tipo"""
-    pass
+    monto = float(input("Monto: ")) #Hay que validar que no se coloquen montos negativos en validacion_de_monto()
+    fecha = input("Fecha: ") #Hay que validar que la fecha que se elija sea válida en validacion_de_fecha()
+    categoria = input("Categoria: ") 
+
+    if categoria in categorias_gastos_fijos or categoria in categorias_ingresos_fijos:
+        clase_movimiento = "fijo"
+    elif categoria in categorias_gastos_variables or categoria in categorias_ingresos_variables:
+        clase_movimiento = "variable"
+    else:
+        clase_movimiento = input("Categoría no reconocida. ¿Fijo o variable? ") #Hay que validar que pasa si el usuario coloca una categoría no reconocida. La categoria nueva se crea dentro de esta función? Si es así, se debe appendear a las listas de categorías en el main 
+        registro_categoria_nueva(categoria, tipo, clase_movimiento)
+
+    """Se crea una lista con los datos del movimiento y se devuelve hacia afuera, para que la función categorizacion_movimientos() la asigne al tipo de movimiento (a lista_ingresos o lista_gastos)"""
+
+    movimiento = [monto, fecha, categoria, clase_movimiento]
+    return movimiento
+
+def registro_categoria_nueva(categoria, tipo, clase_movimiento):
+    """Agrega una categoría nueva a la lista correspondiente según el nombre de la categoría ingresada, el tipo y clase"""
+    if tipo == "gasto" and clase_movimiento == "fijo":
+        categorias_gastos_fijos.append(categoria)
+    elif tipo == "gasto" and clase_movimiento == "variable":
+        categorias_gastos_variables.append(categoria)
+    elif tipo == "ingreso" and clase_movimiento == "fijo":
+        categorias_ingresos_fijos.append(categoria)
+    else:
+        categorias_ingresos_variables.append(categoria)    
 
 def calculo_movimientos():
     """Calcula matemáticamente los movimientos, ya sean ingresos o gastos"""
     pass
-def categorizacion_movimiento(movimientos, tipo):
-    """Categoriza los movimientos en listas dependiendo que tipo sean: ingresos o gastos"""
-    pass
+
+def categorizacion_movimientos(movimientos, tipo):
+    """Categoriza los movimientos en las listas lista_ingresos o lista_gastos"""
+    if tipo == "ingreso": #Validar escritura del string ingresado por el usuario
+        lista_ingresos.append(movimientos)
+    else:
+        lista_gastos.append(movimientos)
+
+    
 def consulta_de_movimientos():
     """Consulta los movimientos pertenecientes a un tiempo determinado"""
     pass
+
 def validacion_de_monto():
     """Controla si el monto ingresado es correcto y no es un string, un número negativo, etc"""
     pass
+
+def validacion_de_fecha():
+    """Controla que la fecha ingresada sea válida"""
+    pass
+
 """Main"""
 
 lista_ingresos = []
 lista_gastos = []
+
+categorias_gastos_fijos = ["Alquiler","Servicios","Suscripciones","Impuestos"]
+categorias_gastos_variables = ["Supermercado","Bares/Restaurantes","Transporte","Combustible","Salud","Educacion","Ocio/Entretenimiento","Regalos","Otros gastos"]
+categorias_ingresos_fijos = ["Sueldo"]
+categorias_ingresos_variables = ["Freelance","Ventas","Inversiones","Reintegros","Regalos","Otros ingresos"]
+
+
+tipo = input("¿Ingreso o gasto?")
+nuevo_movimiento = registro_movimientos(tipo)
+categorizacion_movimientos (nuevo_movimiento, tipo)
