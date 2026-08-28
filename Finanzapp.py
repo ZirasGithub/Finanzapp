@@ -1,12 +1,12 @@
 """Recuerden que tienen que hacer anotaciones docstring después de cada función, explicando qué hace cada una"""
-
+"""Evitar usar funciones globales, todas las funciones deben recibir sus parámetros"""
 #=======================================
 #=========      FINANZAPP      =========       
 #=======================================
 
 def registro_movimientos(tipo):
     """Registra los movimientos en listas, dependiendo el tipo"""
-    monto = float(input("Monto: ")) #Hay que validar que no se coloquen montos negativos en validacion_de_monto()
+    monto = validacion_de_monto() #Hay que validar que no se coloquen montos negativos en validacion_de_monto()
     fecha = input("Fecha: ") #Hay que validar que la fecha que se elija sea válida en validacion_de_fecha()
     categoria = input("Categoria: ") 
 
@@ -23,6 +23,13 @@ def registro_movimientos(tipo):
     movimiento = [monto, fecha, categoria, clase_movimiento]
     return movimiento
 
+def validacion_de_monto():
+    """Pide el monto y controla si el monto ingresado es correcto y no es un número negativo"""
+    monto_string = input("Monto: ")
+    while not monto_string.isdigit():
+        monto_string = input("El monto es inválido. Reingrese: ")
+        return float(monto_string)
+
 def registro_categoria_nueva(categoria, tipo, clase_movimiento):
     """Agrega una categoría nueva a la lista correspondiente según el nombre de la categoría ingresada, el tipo y clase"""
     if tipo == "gasto" and clase_movimiento == "fijo":
@@ -34,9 +41,15 @@ def registro_categoria_nueva(categoria, tipo, clase_movimiento):
     else:
         categorias_ingresos_variables.append(categoria)    
 
+def sumar (x,y):
+    return x+y
+
 def calculo_movimientos():
-    """Calcula matemáticamente los movimientos, ya sean ingresos o gastos"""
-    pass
+    """Calcula matemáticamente los movimientos, ya sean ingresos o gastos - Usar reduce para este caso"""
+    suma_total = map(sumar,lista_ingresos)
+    suma_gastos = map(sumar,lista_gastos)
+    dinero_total = suma_total - suma_gastos
+    
 
 def categorizacion_movimientos(movimientos, tipo):
     """Categoriza los movimientos en las listas lista_ingresos o lista_gastos"""
@@ -48,10 +61,6 @@ def categorizacion_movimientos(movimientos, tipo):
     
 def consulta_de_movimientos():
     """Consulta los movimientos pertenecientes a un tiempo determinado"""
-    pass
-
-def validacion_de_monto():
-    """Controla si el monto ingresado es correcto y no es un string, un número negativo, etc"""
     pass
 
 def validacion_de_fecha():
