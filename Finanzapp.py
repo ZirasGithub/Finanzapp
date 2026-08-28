@@ -28,7 +28,7 @@ def validacion_de_monto():
     monto_string = input("Monto: ")
     while not monto_string.isdigit():
         monto_string = input("El monto es inválido. Reingrese: ")
-        return float(monto_string)
+    return float(monto_string)
 
 def registro_categoria_nueva(categoria, tipo, clase_movimiento):
     """Agrega una categoría nueva a la lista correspondiente según el nombre de la categoría ingresada, el tipo y clase"""
@@ -41,14 +41,15 @@ def registro_categoria_nueva(categoria, tipo, clase_movimiento):
     else:
         categorias_ingresos_variables.append(categoria)    
 
+from functools import reduce
 def sumar (x,y):
     return x+y
-
-def calculo_movimientos():
+def calculo_movimientos(lista_ingresos, lista_gastos):
     """Calcula matemáticamente los movimientos, ya sean ingresos o gastos - Usar reduce para este caso"""
-    suma_total = map(sumar,lista_ingresos)
-    suma_gastos = map(sumar,lista_gastos)
-    dinero_total = suma_total - suma_gastos
+    suma_ingresos = reduce(sumar, lista_ingresos, 0)
+    suma_gastos = reduce(sumar, lista_gastos, 0)
+    dinero_total = suma_ingresos - suma_gastos
+    return dinero_total
     
 
 def categorizacion_movimientos(movimientos, tipo):
@@ -78,6 +79,15 @@ categorias_ingresos_fijos = ["Sueldo"]
 categorias_ingresos_variables = ["Freelance","Ventas","Inversiones","Reintegros","Regalos","Otros ingresos"]
 
 
-tipo = input("¿Ingreso o gasto?")
+tipo = input("¿Ingreso o gasto? ")
 nuevo_movimiento = registro_movimientos(tipo)
-categorizacion_movimientos (nuevo_movimiento, tipo)
+categorizacion_movimientos(nuevo_movimiento, tipo)
+
+eleccion = input("¿Querés cargar otro movimiento? ")
+
+while eleccion == "si":
+    tipo = input("¿Ingreso o gasto? ")
+    nuevo_movimiento = registro_movimientos(tipo)
+    categorizacion_movimientos(nuevo_movimiento, tipo)
+
+    eleccion = input("¿Querés cargar otro movimiento? ")
