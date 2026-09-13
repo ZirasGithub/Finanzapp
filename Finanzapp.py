@@ -17,6 +17,59 @@ def mostrar_menu():
     return int(opcion)
 
 
+#creamos los usuarios con esta funcion, validando si los mismos ya existen o no en la lista "usuarios"
+def crear_usuario(usuarios):
+    print("creando usuario...")
+    nombres_existentes = [usuario[0] for usuario in usuarios]
+    ultimo_id = usuarios[-1][2]
+    user = input("Ingrese el nombre: ")
+
+    while user in nombres_existentes:
+        print("El nombre ya existe, ingrese otro...")
+        user = input("Ingrese el nombre: ")
+
+    password = input("Ingrese el password: ")
+    nuevo_id = ultimo_id + 1
+    usuarios.append((user, password, nuevo_id))
+    print(f"Usuario creado con éxito.")
+    print("ahora iniciaremos sesion...")
+    iniciar_sesion(usuarios)
+    #print(user,nuevo_id)
+    return user,nuevo_id
+
+#crear_usuario(usuarios)
+
+#realizamos inicio de sesion y validamos que exista (en caso de no existir, pasamos a crearlo)
+def iniciar_sesion(usuarios):
+    print("iniciando sesion...")
+    nombre = input("ingrese el nombre: ")
+    usuario_encontrado = False
+    password_correcta= ""
+    id_user = usuarios[2]
+
+
+    for user,password, id in usuarios:
+        if nombre == user:
+            usuario_encontrado = True
+            password_correcta = password
+            id_user = int(id)
+    if usuario_encontrado == True:
+        password = input("ingrese el password: ")
+        while password != password_correcta:
+            print("Error: El password no es correcto.")
+            password = input("ingrese el password: ")
+        print("Acceso concedido! Bienvenido")
+        #print(nombre,id_user)
+        return nombre,id_user
+    else:
+        print("Error: El nombre no existe, desea crear un usuario?.")
+        var = input("s/n: ")
+        if var == "s":
+            return crear_usuario(usuarios)
+            
+#iniciar_sesion(usuarios)
+
+
 def registro_movimientos(tipo):
     """Registra los movimientos en listas, dependiendo el tipo"""
     monto = validacion_de_monto()
@@ -170,6 +223,12 @@ categorias_gastos_fijos = ["Alquiler","Servicios","Suscripciones","Impuestos"]
 categorias_gastos_variables = ["Supermercado","Bares/Restaurantes","Transporte","Combustible","Salud","Educacion","Ocio/Entretenimiento","Regalos","Otros gastos"]
 categorias_ingresos_fijos = ["Sueldo"]
 categorias_ingresos_variables = ["Freelance","Ventas","Inversiones","Reintegros","Regalos","Otros ingresos"]
+usuarios= [
+    ("lucia","pedros",1),
+    ("jaz","racyces",2),
+    ("blas","macias",3),
+    ("lucas","pezzano",4)
+]
 
 print("Bienvenido a Finanzapp!")
 
