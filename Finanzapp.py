@@ -1,10 +1,12 @@
-import re
+
 
 """Recuerden que tienen que hacer anotaciones docstring después de cada función, explicando qué hace cada una"""
 """Evitar usar funciones globales, todas las funciones deben recibir sus parámetros"""
 #=======================================
 #=========      FINANZAPP      =========       
 #=======================================
+
+import re
 def mostrar_menu():
     """Muestra el menu principal y devuelve la opcion elegida"""
     print("\n--- FINANZAPP ---")
