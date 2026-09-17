@@ -125,12 +125,13 @@ def sumar (x,y):
     return x+y
 
 def calculo_movimientos(lista_ingresos, lista_gastos):
-    """Calcula el total de los ingresos y de los gastos"""
+    """Calcula el total de los ingresos y de los gastos + el balance acumulado"""
     montos_ingresos = map(lambda movimiento : movimiento[0], lista_ingresos)
     montos_gastos = map(lambda movimiento: movimiento[0], lista_gastos)
     suma_ingresos = reduce(sumar, montos_ingresos, 0)
     suma_gastos = reduce(sumar, montos_gastos, 0)
-    return suma_ingresos, suma_gastos
+    balance_acumulado = suma_ingresos - suma_gastos
+    return suma_ingresos, suma_gastos, balance_acumulado
     
 
 def consulta_de_movimientos(lista_ingresos, lista_gastos):
@@ -190,11 +191,12 @@ while opcion != 4:
             lista_gastos
         )
     elif opcion == 3:
-        total_ingresos, total_gastos = calculo_movimientos(
+        total_ingresos, total_gastos, balance_acumulado = calculo_movimientos(
             lista_ingresos,
             lista_gastos
         )
         print("Total de ingresos:", total_ingresos)
         print("Total de gastos:", total_gastos)
+        print("Balance acumulado: ",balance_acumulado)
     opcion = mostrar_menu()
 print("Gracias por usar Finanzapp!")
