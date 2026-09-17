@@ -7,7 +7,7 @@ from functools import reduce
 #=========      FINANZAPP      =========
 #=======================================
 
-CATEGORIAS_AHORRO = ["Reserva de dinero", "Inversion"]
+TIPOS_INVERSION = ["Plazo fijo", "Fondo de inversion", "Acciones", "Cripto", "Otros"]
 
 
 # ---------- MENÚS ----------
@@ -18,12 +18,24 @@ def mostrar_menu_usuario():
     print("1 - Cargar movimiento")
     print("2 - Consultar movimientos")
     print("3 - Ver totales")
-    print("4 - Depositar en ahorro")
-    print("5 - Salir")
+    print("4 - Ahorro / Inversion")
+    print("5 - Ver ahorros e inversiones")
+    print("6 - Salir")
     opcion = input("Seleccione una opción: ")
 
-    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 5:
-        opcion = input("Opción inválida, seleccione un número entre 1 y 5: ")
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 6:
+        opcion = input("Opción inválida, seleccione un número entre 1 y 6: ")
+    return int(opcion)
+
+def mostrar_submenu_ahorro():
+    """Muestra el submenu de ahorro e inversion y devuelve la opcion elegida"""
+    print("\n--- AHORRO / INVERSION ---")
+    print("1 - Reservar dinero")
+    print("2 - Invertir dinero")
+    print("3 - Volver al menu principal")
+    opcion = input("Seleccione una opción: ")
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 3:
+        opcion = input("Opción inválida, seleccione un numero entre 1 y 3: ")
     return int(opcion)
 
 
@@ -113,11 +125,58 @@ def obtener_rol(usuarios, id_user):
 
 
 def inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios):
-    """Crea las estructuras de movimientos y ahorro de un usuario si todavía no existen."""
+    """Crea las estructuras de movimientos, reserva e inversion de un usuario si todavía no existen."""
     if id_user not in movimientos_usuarios:
         movimientos_usuarios[id_user] = {"ingresos": [], "gastos": []}
     if id_user not in ahorros_usuarios:
-        ahorros_usuarios[id_user] = 0.0
+        inversiones_iniciales = {tipo: 0.0 for tipo in TIPOS_INVERSION}
+        ahorros_usuarios[id_user] = {"reserva": 0.0, "inversion": inversiones_iniciales}
+
+# ---------- RESERVA E INVERSIÓN ----------
+
+def seleccionar_tipo_inversion():
+    """Muestra los tipos de inversión disponibles y devuelve el elegido."""
+    for i in range(len(TIPOS_INVERSION)):
+        print(i + 1, "-", TIPOS_INVERSION[i])
+    opcion = input("Seleccione un tipo de inversión: ")
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(TIPOS_INVERSION):
+        opcion = input("Opción inválida, ingrese un número: ")
+    return TIPOS_INVERSION[int(opcion) - 1]
+
+
+def depositar_en_reserva(ahorros_usuarios, id_user):
+    """Agrega dinero a la reserva del usuario."""
+    monto = validacion_de_monto()
+    ahorros_usuarios[id_user]["reserva"] += monto
+    print(f"Reserva actualizada. Total reservado: ${ahorros_usuarios[id_user]['reserva']}")
+
+
+def depositar_en_inversion(ahorros_usuarios, id_user):
+    """Agrega dinero a un tipo de inversión elegido por el usuario."""
+    tipo = seleccionar_tipo_inversion()
+    monto = validacion_de_monto()
+    ahorros_usuarios[id_user]["inversion"][tipo] += monto
+    print(f"Inversión actualizada. Total en {tipo}: ${ahorros_usuarios[id_user]['inversion'][tipo]}")
+
+
+def consulta_ahorro_inversion(ahorros_usuarios, id_user):
+    """Muestra la reserva y las inversiones (por tipo) del usuario logueado."""
+    datos = ahorros_usuarios[id_user]
+    print("\nRESERVA")
+    print("Total reservado:", datos["reserva"])
+
+    print("\nINVERSIONES")
+    hay_inversiones = False
+    for tipo, monto in datos["inversion"].items():
+        if monto > 0:
+            hay_inversiones = True
+            print(f"{tipo}: ${monto}")
+    if not hay_inversiones:
+        print("No hay inversiones cargadas.")
+
+    total_invertido = sum(datos["inversion"].values())
+    print(f"\nTotal invertido: ${total_invertido}")
+    print(f"Total general (reserva + inversión): ${datos['reserva'] + total_invertido}")
 
 
 # ---------- CATEGORÍAS (MATRIZ) ----------
@@ -227,15 +286,6 @@ def guardar_movimiento(movimientos_usuarios, id_user, tipo, movimiento):
         movimientos_usuarios[id_user]["gastos"].append(movimiento)
 
 
-def aplicar_categoria_ahorro(ahorros_usuarios, id_user, categoria, monto):
-    """Si la categoría es de reserva/inversión, resta el monto del ahorro total del usuario.
-    Devuelve False (y no registra el movimiento) si el usuario no tiene ahorro suficiente."""
-    if categoria in CATEGORIAS_AHORRO:
-        if monto > ahorros_usuarios[id_user]:
-            print(f"No se puede registrar: el ahorro disponible es de ${ahorros_usuarios[id_user]}.")
-            return False
-        ahorros_usuarios[id_user] -= monto
-    return True
 
 
 def depositar_ahorro(ahorros_usuarios, id_user):
@@ -337,7 +387,7 @@ categorias_matriz = [
     [
         ["Alquiler", "Servicios", "Suscripciones", "Impuestos"],
         ["Supermercado", "Bares/Restaurantes", "Transporte", "Combustible", "Salud",
-         "Educacion", "Ocio/Entretenimiento", "Regalos", "Otros gastos"] + CATEGORIAS_AHORRO
+         "Educacion", "Ocio/Entretenimiento", "Regalos", "Otros gastos"]
     ],
     [
         ["Sueldo"],
@@ -346,7 +396,7 @@ categorias_matriz = [
 ]
 
 movimientos_usuarios = {}   # id_user -> {"ingresos": [...], "gastos": [...]}
-ahorros_usuarios = {}       # id_user -> monto ahorrado
+ahorros_usuarios = {}       # id_user -> {"reserva": monto, "inversion": {tipo: monto, ...}}
 
 print("Bienvenido a Finanzapp!")
 
@@ -365,20 +415,12 @@ if rol == "admin":
 
 else:
     opcion = mostrar_menu_usuario()
-    while opcion != 5:
+    while opcion != 6:
         if opcion == 1:
             tipo = validar_tipo()
             nuevo_movimiento = registro_movimientos(tipo, categorias_matriz)
-            categoria_elegida = nuevo_movimiento[2]
-            monto_elegido = nuevo_movimiento[0]
-
-            registrar_ok = True
-            if tipo == "gasto" and categoria_elegida in CATEGORIAS_AHORRO:
-                registrar_ok = aplicar_categoria_ahorro(ahorros_usuarios, id_user, categoria_elegida, monto_elegido)
-
-            if registrar_ok:
-                guardar_movimiento(movimientos_usuarios, id_user, tipo, nuevo_movimiento)
-                print("Movimiento registrado con éxito.")
+            guardar_movimiento(movimientos_usuarios, id_user, tipo, nuevo_movimiento)
+            print("Movimiento registrado con éxito.")
 
         elif opcion == 2:
             consulta_de_movimientos(movimientos_usuarios[id_user])
@@ -389,7 +431,16 @@ else:
             print("Total de gastos:", total_gastos)
 
         elif opcion == 4:
-            depositar_ahorro(ahorros_usuarios, id_user)
+            sub_opcion = mostrar_submenu_ahorro()
+            while sub_opcion != 3:
+                if sub_opcion == 1:
+                    depositar_en_reserva(ahorros_usuarios, id_user)
+                elif sub_opcion == 2:
+                    depositar_en_inversion(ahorros_usuarios, id_user)
+                sub_opcion = mostrar_submenu_ahorro()
+
+        elif opcion == 5:
+            consulta_ahorro_inversion(ahorros_usuarios, id_user)
 
         opcion = mostrar_menu_usuario()
 
