@@ -20,7 +20,6 @@ def mostrar_menu_usuario():
     print("5 - Ver ahorros e inversiones")
     print("6 - Salir")
     opcion = input("Seleccione una opción: ")
-
     while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 6:
         opcion = input("Opción inválida, seleccione un número entre 1 y 6: ")
     return int(opcion)
@@ -36,9 +35,9 @@ def mostrar_submenu_ahorro():
         opcion = input("Opción inválida, seleccione un numero entre 1 y 3: ")
     return int(opcion)
 
-#Muestra el menú del superusuario y devuelve la opción elegida.
+
 def mostrar_menu_admin():
-    
+    """Muestra el menú del superusuario y devuelve la opción elegida"""
     print("\n--- FINANZAPP (Superusuario) ---")
     print("1 - Ver movimientos de todos los usuarios")
     print("2 - Editar un movimiento de un usuario")
@@ -101,9 +100,9 @@ def iniciar_sesion(usuarios):
             return crear_usuario(usuarios)
         return None
 
-#Punto de entrada: permite iniciar sesión o crear un usuario hasta lograr acceso.
+
 def acceso(usuarios):
-    
+    """Punto de entrada: permite iniciar sesión o crear un usuario hasta lograr acceso"""
     resultado = None
     while resultado is None:
         opcion = input("1 - Iniciar sesión\n2 - Crear usuario\nSeleccione una opción: ")
@@ -128,11 +127,12 @@ def inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios):
         inversiones_iniciales = {tipo: 0.0 for tipo in TIPOS_INVERSION}
         ahorros_usuarios[id_user] = {"reserva": 0.0, "inversion": inversiones_iniciales}
 
-def registro_movimientos(tipo):
+
+def registro_movimientos(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables):
     """Registra los movimientos en listas, dependiendo el tipo"""
     monto = validacion_de_monto()
     fecha = validacion_de_fecha()
-    categoria, clase_movimiento = seleccionar_categoria(tipo)
+    categoria, clase_movimiento = seleccionar_categoria(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables)
     movimiento = [monto, fecha, categoria, clase_movimiento]
     return movimiento
 
@@ -153,7 +153,7 @@ def guardar_movimientos(movimientos, tipo, lista_ingresos, lista_gastos):
         lista_gastos.append(movimientos)
 
 
-def registro_categoria_nueva(categoria, tipo, clase_movimiento):
+def registro_categoria_nueva(categoria, tipo, clase_movimiento, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables):
     """Agrega una categoria nueva a la lista correspondiente"""
     if tipo == "gasto" and clase_movimiento == "fijo":
         categorias_gastos_fijos.append(categoria)
@@ -165,7 +165,7 @@ def registro_categoria_nueva(categoria, tipo, clase_movimiento):
         categorias_ingresos_variables.append(categoria)
 
 
-def seleccionar_categoria(tipo):
+def seleccionar_categoria(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables):
     """Permite elegir una categoría existente o crear una nueva."""
     if tipo == "gasto":
         categorias = categorias_gastos_fijos + categorias_gastos_variables
@@ -173,38 +173,37 @@ def seleccionar_categoria(tipo):
         categorias = categorias_ingresos_fijos + categorias_ingresos_variables
 
     for i in range(len(categorias)):
-        print(i + 1, "-", categorias[i])
-
-    print(len(categorias) + 1, "- Crear nueva categoria")
+        print(i, "-", categorias[i])
+    print(len(categorias), "- Crear nueva categoria")
 
     opcion = input("Seleccione una categoria: ")
-    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(categorias) + 1:
+    while not opcion.isdigit() or int(opcion) < 0 or int(opcion) > len(categorias):
         opcion = input("Opcion invalida, ingrese un numero: ")
     opcion = int(opcion)
 
-    if opcion == len(categorias) + 1:
+    if opcion == len(categorias):
         categoria = input("Ingrese el nombre de la nueva categoría: ")
         clase_movimiento = input("¿Fijo o variable? ").strip().lower()
         while clase_movimiento != "fijo" and clase_movimiento != "variable":
             clase_movimiento = input("Opción inválida, ingrese fijo o variable: ").strip().lower()
-        registro_categoria_nueva(categoria, tipo, clase_movimiento)
+        registro_categoria_nueva(categoria, tipo, clase_movimiento, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables)
         return categoria, clase_movimiento
-    categoria = categorias[opcion - 1]
 
+    categoria = categorias[opcion]
     if categoria in categorias_gastos_fijos or categoria in categorias_ingresos_fijos:
         clase_movimiento = "fijo"
     else:
         clase_movimiento = "variable"
+
     return categoria, clase_movimiento
 
 
 def validacion_de_monto():
     """Pide el monto y controla si es correcto y no es un número negativo"""
-    monto_string = input("Monto: ")
-    while not monto_string.replace(".", "", 1).isdigit():
-        monto_string = input("El monto es inválido, reingrese: ")
-    return float(monto_string)
-
+    monto = input("Monto: ")
+    while not monto.replace(",", "", 1).isdigit():
+        monto = input("El monto es inválido, reingrese: ")
+    return float(monto.replace(",", "."))
 
 
 def validacion_de_fecha():
@@ -217,10 +216,7 @@ def validacion_de_fecha():
     dia = int(partes[0])
     mes = int(partes[1])
     anio = int(partes[2])
-    while (
-        (mes == 2 and dia > 29)
-        or (mes in [4, 6, 9, 11] and dia > 30)
-    ):
+    while ((mes == 2 and dia > 29) or (mes in [4, 6, 9, 11] and dia > 30)):
         fecha = input("La fecha no existe, reingrese: ")
         while re.match(patron, fecha) == None:
             fecha = input("Fecha no valida, reingrese en formato dd/mm/aaaa: ")
@@ -270,6 +266,7 @@ def consulta_de_movimientos(lista_ingresos, lista_gastos):
                 "- Categoría:", movimiento[2],
                 "- Clase:", movimiento[3]
             )
+
 
 def consulta_admin(movimientos_usuarios, usuarios):
     """Permite al superusuario ver los movimientos de todos los usuarios."""
@@ -394,7 +391,7 @@ else:
     while opcion != 6:
         if opcion == 1:
             tipo = validar_tipo()
-            nuevo_movimiento = registro_movimientos(tipo)
+            nuevo_movimiento = registro_movimientos(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables)
             guardar_movimientos(
                 nuevo_movimiento,
                 tipo,
