@@ -67,6 +67,16 @@ def iniciar_sesion(usuarios):
             return crear_usuario(usuarios)
 #iniciar_sesion(usuarios)
 
+#Punto de entrada: permite iniciar sesión o crear un usuario hasta lograr acceso.
+def acceso(usuarios):
+    
+    resultado = None
+    while resultado is None:
+        opcion = input("1 - Iniciar sesión\n2 - Crear usuario\nSeleccione una opción: ")
+        while opcion not in ("1", "2"):
+            opcion = input("Opción inválida. 1 - Iniciar sesión / 2 - Crear usuario: ")
+        resultado = iniciar_sesion(usuarios) if opcion == "1" else crear_usuario(usuarios)
+    return resultado
 
 def registro_movimientos(tipo):
     """Registra los movimientos en listas, dependiendo el tipo"""
@@ -231,7 +241,10 @@ usuarios= [
 
 print("Bienvenido a Finanzapp!")
 
+nombre, id_user = acceso(usuarios)
+
 opcion = mostrar_menu()
+
 while opcion != 4:
     if opcion == 1:
         tipo = validar_tipo()
