@@ -30,7 +30,9 @@ def crear_usuario(usuarios):
         print("El nombre ya existe, ingrese otro...")
         user = input("Ingrese el nombre: ")
 
-    password = input("Ingrese el password: ")
+    password = input("Ingrese el password (más de 6 caracteres): ")
+    while not re.match(r"^.{7,}$", password):
+        password = input("Password inválido, debe tener más de 6 caracteres: ")
     nuevo_id = ultimo_id + 1
     usuarios.append((user, password, nuevo_id))
     print(f"Usuario creado con éxito.")
