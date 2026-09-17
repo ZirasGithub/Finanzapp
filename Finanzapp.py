@@ -13,11 +13,25 @@ def mostrar_menu():
     print("1 - Cargar movimiento")
     print("2 - Consultar movimientos")
     print("3 - Ver totales")
+    print("4 - Depositar en ahorros")
     print("4 - Salir")
     opcion = input("Seleccione una opción: ")
 
     while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 4:
         opcion = input("Opción inválida, seleccione un numero entre 1 y 4 ")
+    return int(opcion)
+
+#Muestra el menú del superusuario y devuelve la opción elegida.
+def mostrar_menu_admin():
+    
+    print("\n--- FINANZAPP (Superusuario) ---")
+    print("1 - Ver movimientos de todos los usuarios")
+    print("2 - Editar un movimiento de un usuario")
+    print("3 - Salir")
+    opcion = input("Seleccione una opción: ")
+ 
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 3:
+        opcion = input("Opción inválida, seleccione un número entre 1 y 3: ")
     return int(opcion)
 
 
