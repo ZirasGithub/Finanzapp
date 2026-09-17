@@ -61,6 +61,10 @@ def crear_usuario(usuarios):
         print("El nombre ya existe, ingrese otro...")
         user = input("Ingrese el nombre: ")
 
+    while len(user) == 0:
+        print("Debe ingresar un nombre valido...")
+        user = input("Ingrese el nombre: ")
+
     password = input("Ingrese el password (más de 6 caracteres): ")
     while not re.match(r"^.{7,}$", password):
         password = input("Password inválido, debe tener más de 6 caracteres: ")
@@ -119,13 +123,12 @@ def obtener_rol(usuarios, id_user):
     return "usuario"
 
 
-
-def inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios, tipos_inversion):
+def inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios):
     """Crea las estructuras de movimientos, reserva e inversion de un usuario si todavía no existen."""
     if id_user not in movimientos_usuarios:
         movimientos_usuarios[id_user] = {"ingresos": [], "gastos": []}
     if id_user not in ahorros_usuarios:
-        inversiones_iniciales = {tipo: 0.0 for tipo in tipos_inversion}
+        inversiones_iniciales = {tipo: 0.0 for tipo in TIPOS_INVERSION}
         ahorros_usuarios[id_user] = {"reserva": 0.0, "inversion": inversiones_iniciales}
 
 
@@ -228,12 +231,9 @@ def validacion_de_fecha():
     return fecha
 
 
-from functools import reduce 
-
-#Suma dos valores; se usa como función acumuladora para reduce.
-def sumar(x, y):
-    return x + y
-
+from functools import reduce
+def sumar (x,y):
+    return x+y
 
 def calculo_movimientos(lista_ingresos, lista_gastos):
     """Calcula el total de los ingresos y de los gastos + el balance acumulado"""
@@ -312,14 +312,14 @@ def editar_movimiento_admin(movimientos_usuarios):
 
 # RESERVA E INVERSIÓN 
 
-def seleccionar_tipo_inversion(tipos_inversion):
+def seleccionar_tipo_inversion():
     """Muestra los tipos de inversión disponibles y devuelve el elegido."""
-    for i in range(len(tipos_inversion)):
-        print(i + 1, "-", tipos_inversion[i])
+    for i in range(len(TIPOS_INVERSION)):
+        print(i + 1, "-", TIPOS_INVERSION[i])
     opcion = input("Seleccione un tipo de inversión: ")
-    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(tipos_inversion):
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(TIPOS_INVERSION):
         opcion = input("Opción inválida, ingrese un número: ")
-    return tipos_inversion[int(opcion) - 1]
+    return TIPOS_INVERSION[int(opcion) - 1]
 
 
 def depositar_en_reserva(ahorros_usuarios, id_user):
@@ -329,10 +329,9 @@ def depositar_en_reserva(ahorros_usuarios, id_user):
     print(f"Reserva actualizada. Total reservado: ${ahorros_usuarios[id_user]['reserva']}")
 
 
-
-def depositar_en_inversion(ahorros_usuarios, id_user, tipos_inversion):
+def depositar_en_inversion(ahorros_usuarios, id_user):
     """Agrega dinero a un tipo de inversión elegido por el usuario."""
-    tipo = seleccionar_tipo_inversion(tipos_inversion)
+    tipo = seleccionar_tipo_inversion()
     monto = validacion_de_monto()
     ahorros_usuarios[id_user]["inversion"][tipo] += monto
     print(f"Inversión actualizada. Total en {tipo}: ${ahorros_usuarios[id_user]['inversion'][tipo]}")
@@ -380,7 +379,7 @@ print("Bienvenido a Finanzapp!")
 
 nombre, id_user = acceso(usuarios)
 rol = obtener_rol(usuarios, id_user)
-inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios, TIPOS_INVERSION)
+inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios)
 
 if rol == "admin":
     opcion = mostrar_menu_admin()
@@ -422,8 +421,7 @@ else:
                 if sub_opcion == 1:
                     depositar_en_reserva(ahorros_usuarios, id_user)
                 elif sub_opcion == 2:
-                    depositar_en_inversion(ahorros_usuarios, id_user, TIPOS_INVERSION)
-                
+                    depositar_en_inversion(ahorros_usuarios, id_user)
                 sub_opcion = mostrar_submenu_ahorro()
         elif opcion == 5:
             consulta_ahorro_inversion(ahorros_usuarios, id_user)
