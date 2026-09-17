@@ -1,3 +1,5 @@
+import re
+
 """Recuerden que tienen que hacer anotaciones docstring después de cada función, explicando qué hace cada una"""
 """Evitar usar funciones globales, todas las funciones deben recibir sus parámetros"""
 #=======================================
@@ -32,9 +34,6 @@ def crear_usuario(usuarios):
     nuevo_id = ultimo_id + 1
     usuarios.append((user, password, nuevo_id))
     print(f"Usuario creado con éxito.")
-    print("ahora iniciaremos sesion...")
-    iniciar_sesion(usuarios)
-    #print(user,nuevo_id)
     return user,nuevo_id
 
 #crear_usuario(usuarios)
@@ -145,7 +144,7 @@ def validacion_de_monto():
     return float(monto_string)
 
 
-import re
+
 def validacion_de_fecha():
     """Pide la fecha y controla que tenga un formato y valores válidos."""
     fecha = input("Fecha (dd/mm/aaaa): ")
