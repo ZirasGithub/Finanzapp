@@ -308,14 +308,14 @@ def editar_movimiento_admin(movimientos_usuarios):
 
 # RESERVA E INVERSIÓN 
 
-def seleccionar_tipo_inversion():
+def seleccionar_tipo_inversion(tipos_inversion):
     """Muestra los tipos de inversión disponibles y devuelve el elegido."""
-    for i in range(len(TIPOS_INVERSION)):
-        print(i + 1, "-", TIPOS_INVERSION[i])
+    for i in range(len(tipos_inversion)):
+        print(i + 1, "-", tipos_inversion[i])
     opcion = input("Seleccione un tipo de inversión: ")
-    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(TIPOS_INVERSION):
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(tipos_inversion):
         opcion = input("Opción inválida, ingrese un número: ")
-    return TIPOS_INVERSION[int(opcion) - 1]
+    return tipos_inversion[int(opcion) - 1]
 
 
 def depositar_en_reserva(ahorros_usuarios, id_user):
