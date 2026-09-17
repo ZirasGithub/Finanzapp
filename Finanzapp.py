@@ -45,8 +45,7 @@ def iniciar_sesion(usuarios):
     nombre = input("ingrese el nombre: ")
     usuario_encontrado = False
     password_correcta= ""
-    id_user = usuarios[2]
-
+    id_user = None
 
     for user,password, id in usuarios:
         if nombre == user:
@@ -59,14 +58,12 @@ def iniciar_sesion(usuarios):
             print("Error: El password no es correcto.")
             password = input("ingrese el password: ")
         print("Acceso concedido! Bienvenido")
-        #print(nombre,id_user)
         return nombre,id_user
     else:
         print("Error: El nombre no existe, desea crear un usuario?.")
         var = input("s/n: ")
         if var == "s":
             return crear_usuario(usuarios)
-            
 #iniciar_sesion(usuarios)
 
 
