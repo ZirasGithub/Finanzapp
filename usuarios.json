@@ -1,0 +1,32 @@
+[
+    {
+        "user": "lucia",
+        "pass": "pedros",
+        "id_user": 1,
+        "rol": "usuario"
+    },
+    {
+        "user": "jaz",
+        "pass": "racyces",
+        "id_user": 2,
+        "rol": "usuario"
+    },
+    {
+        "user": "blas",
+        "pass": "macias",
+        "id_user": 3,
+        "rol": "usuario"
+    },
+    {
+        "user": "lucas",
+        "pass": "pezzano",
+        "id_user": 4,
+        "rol": "usuario"
+    },
+    {
+        "user": "admin",
+        "pass": "admin1234",
+        "id_user": 0,
+        "rol": "admin"
+    }
+]
