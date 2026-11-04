@@ -28,5 +28,17 @@
         "pass": "admin1234",
         "id_user": 0,
         "rol": "admin"
+    },
+    {
+        "user": "tomy",
+        "pass": "1234567",
+        "id_user": 5,
+        "rol": "usuario"
+    },
+    {
+        "user": " {",
+        "pass": "        \"nombre\": \"admin\",",
+        "id_user": 6,
+        "rol": "usuario"
     }
 ]

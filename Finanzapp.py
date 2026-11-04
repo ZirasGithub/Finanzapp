@@ -94,6 +94,17 @@ def crear_usuario(usuarios):
                      'id_user' : nuevo_id,
                      'rol' : "usuario"})
     print("Usuario creado con éxito.")
+    
+    try:
+        ruta_actual=os.path.dirname(__file__)
+        ruta_archivo= os.path.join(ruta_actual,"usuarios.json")
+        with open(ruta_archivo,"w") as nuevoUser:
+            json.dump(usuarios,nuevoUser,indent=4)
+            
+    except Exception as e:
+            print(e)
+    
+    
     acceso(usuarios)
     return user, nuevo_id
 
