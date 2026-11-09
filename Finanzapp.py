@@ -30,10 +30,11 @@ def mostrar_menu_usuario():
     print("3 - Ver totales")
     print("4 - Ahorro / Inversion")
     print("5 - Ver ahorros e inversiones")
-    print("6 - Salir")
+    print("6 - Gastos por categoria")
+    print("7 - Salir")
     opcion = input("Seleccione una opción: ")
-    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 6:
-        opcion = input("Opción inválida, seleccione un número entre 1 y 6: ")
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 7:
+        opcion = input("Opción inválida, seleccione un número entre 1 y 7: ")
     return int(opcion)
 
 def mostrar_submenu_ahorro():
@@ -304,6 +305,43 @@ def consulta_de_movimientos(lista_ingresos, lista_gastos):
                 "- Clase:", movimiento[3]
             )
 
+def gastos_por_categoria(lista_gastos):
+    """Muestra el total y el porcentaje de cada categoría sobre el total de gastos.
+    Después permite ver el detalle de una categoría."""
+    if len(lista_gastos) == 0:
+        print("No hay gastos cargados.")
+        return
+
+    totales = {}
+    total_gastos = 0
+    for movimiento in lista_gastos:
+        categoria = movimiento[2]
+        totales[categoria] = totales.get(categoria, 0) + movimiento[0]
+        total_gastos += movimiento[0]
+
+    print("GASTOS POR CATEGORIA")
+    categorias = list(totales.keys())
+    for i in range(len(categorias)):
+        cat = categorias[i]
+        porcentaje = totales[cat] / total_gastos * 100
+        print(i + 1, "-", cat, "-", totales[cat], "-", round(porcentaje, 2), "%")
+
+    ver = input("¿Desea ver el detalle de una categoría? s/n: ")
+    if ver == "s":
+        opcion = input("Seleccione el número de categoría: ")
+        while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(categorias):
+            opcion = input("Opción inválida, reingrese: ")
+        categoria_elegida = categorias[int(opcion) - 1]
+        detalle_categoria(lista_gastos, categoria_elegida, totales[categoria_elegida])
+
+def detalle_categoria(lista_gastos, categoria, total_categoria):
+    """Muestra cada gasto de una categoría y qué porcentaje representa dentro de ella."""
+    print("DETALLE DE", categoria.upper())
+    for movimiento in lista_gastos:
+        if movimiento[2] == categoria:
+            porcentaje = movimiento[0] / total_categoria * 100
+            print("Fecha:", movimiento[1], "- Monto:", movimiento[0], "-", round(porcentaje, 2), "%")
+    print("Total de la categoría:", total_categoria)
 
 def consulta_admin(movimientos_usuarios, usuarios):
     #Permite al superusuario ver los movimientos de todos los usuarios.
@@ -428,7 +466,7 @@ if rol == "admin":
 
 else:
     opcion = mostrar_menu_usuario()
-    while opcion != 6:
+    while opcion != 7:
         if opcion == 1:
             tipo = validar_tipo()
             nuevo_movimiento = registro_movimientos(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables)
@@ -461,6 +499,8 @@ else:
                 sub_opcion = mostrar_submenu_ahorro()
         elif opcion == 5:
             consulta_ahorro_inversion(ahorros_usuarios, id_user)
+        elif opcion == 6:
+            gastos_por_categoria(movimientos_usuarios[id_user]["gastos"])
         opcion = mostrar_menu_usuario()
 
 print("Gracias por usar Finanzapp!")
