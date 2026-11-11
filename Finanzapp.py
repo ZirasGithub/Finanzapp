@@ -65,17 +65,24 @@ def mostrar_menu_admin():
 
 #creamos los usuarios con esta funcion, validando si los mismos ya existen o no en la lista "usuarios"
 def crear_usuario(usuarios):
-    """Crea un usuario nuevo validando que el nombre no exista ni esté vacío y que el password tenga más de 6 caracteres.
-    Devuelve el nombre y el id del usuario creado."""
+    #Crea un usuario nuevo validando que el nombre no exista y que el password tenga más de 6 caracteres.
+    #Devuelve el nombre y el id del usuario creado.
     print("Creando usuario...")
+    
+    
+            
     nombres_existentes = {usuario['user'] for usuario in usuarios}
-
+    print(nombres_existentes)
+    
+  
     user = input("Ingrese el nombre: ")
-    while len(user) == 0 or user in nombres_existentes:
-        if len(user) == 0:
-            print("Debe ingresar un nombre válido...")
-        else:
-            print("El nombre de usuario ya está en uso, ingrese otro...")
+    
+    while user in nombres_existentes:
+        print("El nombre ya existe, ingrese otro...")
+        user = input("Ingrese el nombre: ")
+
+    while len(user) == 0:
+        print("Debe ingresar un nombre valido...")
         user = input("Ingrese el nombre: ")
 
     password = input("Ingrese el password (más de 6 caracteres): ")
@@ -84,12 +91,26 @@ def crear_usuario(usuarios):
 
     ids_existentes = [usuario['id_user'] for usuario in usuarios]
     nuevo_id = max(ids_existentes) + 1
-    usuarios.append({'user': user,
-                     'pass': password,
-                     'id_user': nuevo_id,
-                     'rol': "usuario"})
+    usuarios.append({'user' : user,
+                     'pass' : password,
+                     'id_user' : nuevo_id,
+                     'rol' : "usuario"})
     print("Usuario creado con éxito.")
+    
+    try:
+        ruta_actual=os.path.dirname(__file__)
+        ruta_archivo= os.path.join(ruta_actual,"usuarios.json")
+        with open(ruta_archivo,"w") as nuevoUser:
+            json.dump(usuarios,nuevoUser,indent=4)
+            
+    except Exception as e:
+            print(e)
+    
+    
+    acceso(usuarios)
     return user, nuevo_id
+
+
 #realizamos inicio de sesion y validamos que exista (en caso de no existir, pasamos a crearlo)
 def iniciar_sesion(usuarios):
     #Valida nombre y contraseña de un usuario existente. Si no existe, ofrece crear uno nuevo.
@@ -117,7 +138,7 @@ def iniciar_sesion(usuarios):
             ruta_actual=os.path.dirname(__file__)
             ruta_archivo= os.path.join(ruta_actual,"Inicios de sesion registrados.csv")
             with open(ruta_archivo,"a") as sesiones_h:
-                logueo = f"{nombre} ; {id_user} \n"
+                logueo = f"{nombre} ; {password} ; {id_user} \n"
                 sesiones_h.write(logueo)
         except Exception as e:
             print(e)
@@ -129,6 +150,7 @@ def iniciar_sesion(usuarios):
         if var == "s":
             return crear_usuario(usuarios)
         return None
+
 
 
 def acceso(usuarios):

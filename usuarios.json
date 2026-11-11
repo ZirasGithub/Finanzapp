@@ -36,8 +36,8 @@
         "rol": "usuario"
     },
     {
-        "user": " {",
-        "pass": "        \"nombre\": \"admin\",",
+        "user": "pruebaUSER",
+        "pass": "1234567",
         "id_user": 6,
         "rol": "usuario"
     }
