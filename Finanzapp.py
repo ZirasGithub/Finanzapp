@@ -311,6 +311,61 @@ def consulta_de_movimientos(lista_ingresos, lista_gastos):
             )
 
 
+def movimientos_por_intervalo(lista_ingresos, lista_gastos):
+    print("Ingrese la fecha de inicio: ")
+    fechaInicio = validacion_de_fecha()
+    partesInicio = fechaInicio.split("/")
+    inicio = int(partesInicio[2] + partesInicio[1] + partesInicio[0])
+
+    print("Ingrese la fecha de fin: ")
+    fechaFin = validacion_de_fecha()
+    partesFin = fechaFin.split("/")
+    fin = int(partesFin[2] + partesFin[1] + partesFin[0])
+
+    while inicio > fin:
+        print("La fecha de inicio no puede ser posterior a la fecha de fin.")
+        print("Ingrese nuevamente la fecha de inicio:")
+        fecha_inicio = validacion_de_fecha()
+        print("Ingrese nuevamente la fecha de fin:")
+        fecha_fin = validacion_de_fecha()
+        partes_inicio = fecha_inicio.split("/")
+        inicio = int(partes_inicio[2] + partes_inicio[1] + partes_inicio[0])
+        partes_fin = fecha_fin.split("/")
+        fin = int(partes_fin[2] + partes_fin[1] + partes_fin[0])
+
+    print("\nINGRESOS")
+    encontro_ingresos = False
+    for movimiento in lista_ingresos:
+        partes = movimiento[1].split("/")
+        fecha_movimiento = int(partes[2] + partes[1] + partes[0])
+        if fecha_movimiento >= inicio and fecha_movimiento <= fin:
+            print(
+                "Monto:", movimiento[0],
+                "- Fecha:", movimiento[1],
+                "- Categoría:", movimiento[2],
+                "- Clase:", movimiento[3]
+            )
+            encontro_ingresos = True
+    if not encontro_ingresos:
+        print("No hay ingresos en ese intervalo.")
+
+    print("\nGASTOS")
+    encontro_gastos = False
+    for movimiento in lista_gastos:
+        partes = movimiento[1].split("/")
+        fecha_movimiento = int(partes[2] + partes[1] + partes[0])
+        if fecha_movimiento >= inicio and fecha_movimiento <= fin:
+            print(
+                "Monto:", movimiento[0],
+                "- Fecha:", movimiento[1],
+                "- Categoría:", movimiento[2],
+                "- Clase:", movimiento[3]
+            )
+            encontro_gastos = True
+    if not encontro_gastos:
+        print("No hay gastos en ese intervalo.")
+
+
 def gastos_por_categoria(lista_gastos):
     """Muestra el total y el porcentaje de cada categoría sobre el total de gastos.
     Después permite ver el detalle de una categoría."""
@@ -434,7 +489,7 @@ def seleccionar_tipo_inversion(tipos_inversion):
 
 
 def depositar_en_reserva(ahorros_usuarios, id_user):
-    #Agrega dinero a la reserva del usuario.
+    """Agrega dinero a la reserva del usuario."""
     monto = validacion_de_monto()
     ahorros_usuarios[id_user]["reserva"] += monto
     print(f"Reserva actualizada. Total reservado: ${ahorros_usuarios[id_user]['reserva']}")
@@ -517,11 +572,17 @@ else:
                 movimientos_usuarios[id_user]["ingresos"],
                 movimientos_usuarios[id_user]["gastos"]
             )
+
         elif opcion == 2:
-            consulta_de_movimientos(
-                movimientos_usuarios[id_user]["ingresos"],
-                movimientos_usuarios[id_user]["gastos"]
-            )
+            subOpcion = input("Ingrese 1 si quiere ver todos los movimientos o 2 si quiere consultar por un intervalo de fechas: ")
+            while not subOpcion.isdigit() or int(subOpcion) < 1 or int(subOpcion) > 2:
+                subOpcion = input("Opción inválida, seleccione 1 o 2: ")
+            subOpcion = int(subOpcion)
+            if subOpcion == 1:
+                consulta_de_movimientos(movimientos_usuarios[id_user]["ingresos"], movimientos_usuarios[id_user]["gastos"])
+            elif subOpcion == 2:
+                movimientos_por_intervalo(movimientos_usuarios[id_user]["ingresos"], movimientos_usuarios[id_user]["gastos"])
+
         elif opcion == 3:
             total_ingresos, total_gastos, balance_acumulado = calculo_movimientos(
                 movimientos_usuarios[id_user]["ingresos"],
@@ -530,6 +591,7 @@ else:
             print("Total de ingresos:", total_ingresos)
             print("Total de gastos:", total_gastos)
             print("Balance acumulado: ", balance_acumulado)
+
         elif opcion == 4:
             sub_opcion = mostrar_submenu_ahorro()
             while sub_opcion != 3:
@@ -538,12 +600,16 @@ else:
                 elif sub_opcion == 2:
                     depositar_en_inversion(ahorros_usuarios, id_user, TIPOS_INVERSION)
                 sub_opcion = mostrar_submenu_ahorro()
+
         elif opcion == 5:
             consulta_ahorro_inversion(ahorros_usuarios, id_user)
+
         elif opcion == 6:
             gastos_por_categoria(movimientos_usuarios[id_user]["gastos"])
+
         elif opcion == 7:
             deshacer_movimiento(movimientos_usuarios[id_user]["ingresos"], movimientos_usuarios[id_user]["gastos"])
+            
         opcion = mostrar_menu_usuario()
 
 print("Gracias por usar Finanzapp!")
