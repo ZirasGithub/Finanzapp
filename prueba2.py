@@ -1,0 +1,764 @@
+#=======================================
+#=========      FINANZAPP      =========       
+#=======================================
+import os
+import re
+import json
+
+#INTERFAZ 
+'''Declaramos variables con los colores a utilizar '''
+
+VERDE = "\033[92m"
+ROJO = "\033[91m"
+AMARILLO = "\033[93m"
+CIAN = "\033[96m"
+GRIS = "\033[90m"
+NEGRITA = "\033[1m"
+RESET = "\033[0m"
+ANCHO = 50
+
+
+def limpiar_pantalla():
+    """Borra la pantalla de la terminal."""
+    print("\033[2J\033[H", end="")
+
+
+def titulo(texto):
+    """Muestra un título centrado entre dos líneas."""
+    print(CIAN + "=" * ANCHO + RESET)
+    print(NEGRITA + texto.center(ANCHO) + RESET)
+    print(CIAN + "=" * ANCHO + RESET)
+
+
+def mostrar_opcion(numero, texto):
+    """Muestra una opción de menú con el número resaltado."""
+    print(f"  {CIAN}[{numero}]{RESET} {texto}")
+
+
+def mensaje_exito(texto):
+    """Muestra un mensaje en verde."""
+    print(VERDE + ">> " + texto + RESET)
+
+
+def mensaje_error(texto):
+    """Muestra un mensaje en rojo."""
+    print(ROJO + ">> " + texto + RESET)
+
+
+def formatear_monto(monto):
+    """Devuelve el monto con formato argentino: $1.234.567,50"""
+    texto = f"{monto:,.2f}"
+    texto = texto.replace(",", "X").replace(".", ",").replace("X", ".")
+    return "$" + texto
+
+
+def pausar():
+    """Espera a que el usuario presione Enter antes de seguir."""
+    input(f"\n{GRIS}Presione Enter para continuar...{RESET}")
+
+
+def cargar_usuarios():
+    """Lee el archivo usuarios.json y devuelve la lista de usuarios."""
+    ruta_actual = os.path.dirname(__file__)
+    ruta_archivo = os.path.join(ruta_actual, "usuarios.json")
+
+    with open(ruta_archivo, "r") as archivo:
+        usuarios = json.load(archivo)
+    return usuarios
+
+
+def mostrar_menu_usuario(nombre):
+    """Muestra el menú principal de un usuario común y devuelve la opción elegida."""
+    titulo("FINANZAPP")
+    print(f"{GRIS}Usuario: {nombre}{RESET}\n")
+    mostrar_opcion(1, "Cargar movimiento")
+    mostrar_opcion(2, "Consultar movimientos")
+    mostrar_opcion(3, "Ver totales")
+    mostrar_opcion(4, "Ahorro / Inversion")
+    mostrar_opcion(5, "Ver ahorros e inversiones")
+    mostrar_opcion(6, "Analizar gastos por categoria o por mes")
+    mostrar_opcion(7, "Deshacer ultimo movimiento")
+    mostrar_opcion(8, "Presupuesto mensual")
+    mostrar_opcion(9, "Salir")
+    opcion = input(f"\n{AMARILLO}Seleccione una opción: {RESET}")
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 9:
+        mensaje_error("Opción inválida.")
+        opcion = input(f"{AMARILLO}Seleccione un número entre 1 y 9: {RESET}")
+    return int(opcion)
+
+def mostrar_submenu_ahorro():
+    """Muestra el submenu de ahorro e inversion y devuelve la opcion elegida"""
+    print("\n--- AHORRO / INVERSION ---")
+    print("1 - Reservar dinero")
+    print("2 - Invertir dinero")
+    print("3 - Volver al menu principal")
+    opcion = input("Seleccione una opción: ")
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 3:
+        opcion = input("Opción inválida, seleccione un numero entre 1 y 3: ")
+    return int(opcion)
+
+
+def mostrar_menu_admin():
+    """Muestra el menú del superusuario y devuelve la opción elegida"""
+    print("\n--- FINANZAPP (Superusuario) ---")
+    print("1 - Ver movimientos de todos los usuarios")
+    print("2 - Editar un movimiento de un usuario")
+    print("3 - Salir")
+    opcion = input("Seleccione una opción: ")
+ 
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 3:
+        opcion = input("Opción inválida, seleccione un número entre 1 y 3: ")
+    return int(opcion)
+
+
+#creamos los usuarios con esta funcion, validando si los mismos ya existen o no en la lista "usuarios"
+def crear_usuario(usuarios):
+    """Crea un usuario nuevo validando que el nombre no exista y que el password tenga más de 6 caracteres.
+    Devuelve el nombre y el id del usuario creado."""
+    print("Creando usuario...")
+    
+    nombres_existentes = {usuario['user'] for usuario in usuarios}
+    print(nombres_existentes)
+    
+    user = input("Ingrese el nombre: ")
+    
+    while user in nombres_existentes:
+        print("El nombre ya existe, ingrese otro...")
+        user = input("Ingrese el nombre: ")
+
+    while len(user) == 0:
+        print("Debe ingresar un nombre valido...")
+        user = input("Ingrese el nombre: ")
+
+    password = input("Ingrese el password (más de 6 caracteres): ")
+    while not re.match(r"^.{7,}$", password):
+        password = input("Password inválido, debe tener más de 6 caracteres: ")
+
+    ids_existentes = [usuario['id_user'] for usuario in usuarios]
+    nuevo_id = max(ids_existentes) + 1
+    usuarios.append({'user' : user,
+                     'pass' : password,
+                     'id_user' : nuevo_id,
+                     'rol' : "usuario"})
+    print("Usuario creado con éxito.")
+    
+    try:
+        ruta_actual=os.path.dirname(__file__)
+        ruta_archivo= os.path.join(ruta_actual,"usuarios.json")
+        with open(ruta_archivo,"w") as nuevoUser:
+            json.dump(usuarios,nuevoUser,indent=4)
+            
+    except Exception as e:
+            print(e)
+    
+    
+    acceso(usuarios)
+    return user, nuevo_id
+
+
+#realizamos inicio de sesion y validamos que exista (en caso de no existir, pasamos a crearlo)
+def iniciar_sesion(usuarios):
+    """Valida nombre y contraseña de un usuario existente. Si no existe, ofrece crear uno nuevo."""
+    print("Iniciando sesión...")
+    nombre = input("Ingrese el nombre: ")
+    usuario_encontrado = False
+    password_correcta = ""
+    id_user = None
+    
+    for usuario in usuarios:
+        if nombre == usuario['user']:
+            usuario_encontrado = True
+            password_correcta = usuario['pass']
+            id_user = usuario['id_user']
+            
+    if usuario_encontrado:
+        password = input("Ingrese el password: ")
+        while password != password_correcta:
+            print("Error: El password no es correcto.")
+            password = input("Ingrese el password: ")
+        print("Acceso concedido! Bienvenido")
+        
+        try:
+            ruta_actual=os.path.dirname(__file__)
+            ruta_archivo= os.path.join(ruta_actual,"Inicios de sesion registrados.csv")
+            with open(ruta_archivo,"a") as sesiones_h:
+                logueo = f"{nombre} ; {password} ; {id_user} \n"
+                sesiones_h.write(logueo)
+        except Exception as e:
+            print(e)
+        
+        return nombre, id_user
+    else:
+        print("Error: El nombre no existe, ¿desea crear un usuario?")
+        var = input("s/n: ")
+        if var == "s":
+            return crear_usuario(usuarios)
+        return None
+
+
+def acceso(usuarios):
+    """Punto de entrada: permite iniciar sesión o crear un usuario hasta lograr acceso."""
+    resultado = None
+    while resultado is None:
+        opcion = input("1 - Iniciar sesión\n2 - Crear usuario\nSeleccione una opción: ")
+        while opcion not in ("1", "2"):
+            opcion = input("Opción inválida. 1 - Iniciar sesión / 2 - Crear usuario: ")
+        resultado = iniciar_sesion(usuarios) if opcion == "1" else crear_usuario(usuarios)
+    return resultado
+
+
+def obtener_rol(usuarios, id_user):
+    """Devuelve el rol ('usuario' o 'admin') correspondiente a un id de usuario."""
+    for usuario in usuarios:
+        if usuario['id_user'] == id_user:
+            return usuario['rol']
+    return "usuario"
+
+
+def inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios, tipos_inversion):
+    """Crea las estructuras de movimientos, reserva e inversion de un usuario si todavía no existen."""
+    if id_user not in movimientos_usuarios:
+        movimientos_usuarios[id_user] = {"ingresos": [], "gastos": []}
+    if id_user not in ahorros_usuarios:
+        inversiones_iniciales = {tipo: 0.0 for tipo in tipos_inversion}
+        ahorros_usuarios[id_user] = {"reserva": 0.0, "inversion": inversiones_iniciales}
+
+
+def registro_movimientos(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables):
+    """Registra los movimientos en listas, dependiendo el tipo."""
+    monto = validacion_de_monto()
+    fecha = validacion_de_fecha()
+    categoria, clase_movimiento = seleccionar_categoria(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables)
+    movimiento = [monto, fecha, categoria, clase_movimiento]
+    return movimiento
+
+
+def validar_tipo():
+    """Valida que el tipo de movimiento sea ingreso o gasto."""
+    tipo = input("¿Quiere registrar un ingreso o un gasto? ").strip().lower()
+    while tipo != "ingreso" and tipo != "gasto":
+        tipo = input("Opción inválida. Elija 'ingreso' o 'gasto': ").strip().lower()
+    return tipo
+
+
+def guardar_movimientos(movimientos, tipo, lista_ingresos, lista_gastos):
+    """Guarda los movimientos en lista_ingresos o lista_gastos."""
+    if tipo == "ingreso":
+        lista_ingresos.append(movimientos)
+    else:
+        lista_gastos.append(movimientos)
+
+
+def registro_categoria_nueva(categoria, tipo, clase_movimiento, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables):
+    """Agrega una categoria nueva a la lista correspondiente."""
+    if tipo == "gasto" and clase_movimiento == "fijo":
+        categorias_gastos_fijos.append(categoria)
+    elif tipo == "gasto" and clase_movimiento == "variable":
+        categorias_gastos_variables.append(categoria)
+    elif tipo == "ingreso" and clase_movimiento == "fijo":
+        categorias_ingresos_fijos.append(categoria)
+    else:
+        categorias_ingresos_variables.append(categoria)
+
+
+def seleccionar_categoria(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables):
+    """Permite elegir una categoría existente o crear una nueva."""
+    if tipo == "gasto":
+        categorias = categorias_gastos_fijos + categorias_gastos_variables
+    else:
+        categorias = categorias_ingresos_fijos + categorias_ingresos_variables
+
+    for i in range(len(categorias)):
+        print(i, "-", categorias[i])
+    print(len(categorias), "- Crear nueva categoria")
+
+    opcion = input("Seleccione una categoria: ")
+    while not opcion.isdigit() or int(opcion) < 0 or int(opcion) > len(categorias):
+        opcion = input("Opcion invalida, ingrese un numero: ")
+    opcion = int(opcion)
+
+    if opcion == len(categorias):
+        categoria = input("Ingrese el nombre de la nueva categoría: ")
+        clase_movimiento = input("¿Fijo o variable? ").strip().lower()
+        while clase_movimiento != "fijo" and clase_movimiento != "variable":
+            clase_movimiento = input("Opción inválida, ingrese fijo o variable: ").strip().lower()
+        registro_categoria_nueva(categoria, tipo, clase_movimiento, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables)
+        return categoria, clase_movimiento
+
+    categoria = categorias[opcion]
+    if categoria in categorias_gastos_fijos or categoria in categorias_ingresos_fijos:
+        clase_movimiento = "fijo"
+    else:
+        clase_movimiento = "variable"
+
+    return categoria, clase_movimiento
+
+
+def validacion_de_monto():
+    """#Pide el monto y controla si es correcto y no es un número negativo."""
+    monto = input("Monto: ")
+    while not monto.replace(",", "", 1).isdigit():
+        monto = input("El monto es inválido, reingrese: ")
+    return float(monto.replace(",", "."))
+
+
+def validacion_de_fecha():
+    """Pide la fecha y controla que tenga un formato y valores válidos."""
+    fecha = input("Fecha (dd/mm/aaaa): ")
+    patron = r"^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}$"
+    while re.match(patron, fecha) == None:
+        fecha = input("Fecha no valida, reingrese en formato dd/mm/aaaa: ")
+    partes = fecha.split("/")
+    dia = int(partes[0])
+    mes = int(partes[1])
+    anio = int(partes[2])
+    while ((mes == 2 and dia > 29) or (mes in [4, 6, 9, 11] and dia > 30)):
+        fecha = input("La fecha no existe, reingrese: ")
+        while re.match(patron, fecha) == None:
+            fecha = input("Fecha no valida, reingrese en formato dd/mm/aaaa: ")
+        partes = fecha.split("/")
+        dia = int(partes[0])
+        mes = int(partes[1])
+        anio = int(partes[2])
+    return fecha
+
+
+from functools import reduce
+def sumar (x,y):
+    return x+y
+
+def calculo_movimientos(lista_ingresos, lista_gastos):
+    """Calcula el total de los ingresos y de los gastos + el balance acumulado."""
+    montos_ingresos = map(lambda movimiento : movimiento[0], lista_ingresos)
+    montos_gastos = map(lambda movimiento: movimiento[0], lista_gastos)
+    suma_ingresos = reduce(sumar, montos_ingresos, 0)
+    suma_gastos = reduce(sumar, montos_gastos, 0)
+    balance_acumulado = suma_ingresos - suma_gastos
+    return suma_ingresos, suma_gastos, balance_acumulado
+    
+
+def consulta_de_movimientos(lista_ingresos, lista_gastos):
+    """Muestra los ingresos y gastos registrados en forma de tabla."""
+    titulo("INGRESOS")
+    mostrar_tabla_movimientos(lista_ingresos, VERDE)
+    print()
+    titulo("GASTOS")
+    mostrar_tabla_movimientos(lista_gastos, ROJO)
+
+
+def mostrar_tabla_movimientos(lista, color):
+    """Muestra una lista de movimientos con columnas alineadas."""
+    if len(lista) == 0:
+        print(GRIS + "No hay movimientos cargados." + RESET)
+        return
+    print(NEGRITA + f"{'Fecha':<12}{'Categoría':<22}{'Clase':<10}{'Monto':>15}" + RESET)
+    print(GRIS + "-" * 59 + RESET)
+    for movimiento in lista:
+        monto = formatear_monto(movimiento[0])
+        print(f"{movimiento[1]:<12}{movimiento[2]:<22}{movimiento[3]:<10}{color}{monto:>15}{RESET}")
+        
+def movimientos_por_intervalo(lista_ingresos, lista_gastos):
+    print("Ingrese la fecha de inicio: ")
+    fechaInicio = validacion_de_fecha()
+    partesInicio = fechaInicio.split("/")
+    inicio = int(partesInicio[2] + partesInicio[1] + partesInicio[0])
+
+    print("Ingrese la fecha de fin: ")
+    fechaFin = validacion_de_fecha()
+    partesFin = fechaFin.split("/")
+    fin = int(partesFin[2] + partesFin[1] + partesFin[0])
+
+    while inicio > fin:
+        print("La fecha de inicio no puede ser posterior a la fecha de fin.")
+        print("Ingrese nuevamente la fecha de inicio:")
+        fecha_inicio = validacion_de_fecha()
+        print("Ingrese nuevamente la fecha de fin:")
+        fecha_fin = validacion_de_fecha()
+        partes_inicio = fecha_inicio.split("/")
+        inicio = int(partes_inicio[2] + partes_inicio[1] + partes_inicio[0])
+        partes_fin = fecha_fin.split("/")
+        fin = int(partes_fin[2] + partes_fin[1] + partes_fin[0])
+
+    print("\nINGRESOS")
+    encontro_ingresos = False
+    for movimiento in lista_ingresos:
+        partes = movimiento[1].split("/")
+        fecha_movimiento = int(partes[2] + partes[1] + partes[0])
+        if fecha_movimiento >= inicio and fecha_movimiento <= fin:
+            print(
+                "Monto:", movimiento[0],
+                "- Fecha:", movimiento[1],
+                "- Categoría:", movimiento[2],
+                "- Clase:", movimiento[3]
+            )
+            encontro_ingresos = True
+    if not encontro_ingresos:
+        print("No hay ingresos en ese intervalo.")
+
+    print("\nGASTOS")
+    encontro_gastos = False
+    for movimiento in lista_gastos:
+        partes = movimiento[1].split("/")
+        fecha_movimiento = int(partes[2] + partes[1] + partes[0])
+        if fecha_movimiento >= inicio and fecha_movimiento <= fin:
+            print(
+                "Monto:", movimiento[0],
+                "- Fecha:", movimiento[1],
+                "- Categoría:", movimiento[2],
+                "- Clase:", movimiento[3]
+            )
+            encontro_gastos = True
+    if not encontro_gastos:
+        print("No hay gastos en ese intervalo.")
+
+
+def gastos_por_categoria(lista_gastos):
+    """Muestra el total y el porcentaje de cada categoría sobre el total de gastos.
+    Después permite ver el detalle de una categoría."""
+    if len(lista_gastos) == 0:
+        print("No hay gastos cargados.")
+        return
+
+    totales = {}
+    total_gastos = 0
+    for movimiento in lista_gastos:
+        categoria = movimiento[2]
+        totales[categoria] = totales.get(categoria, 0) + movimiento[0]
+        total_gastos += movimiento[0]
+
+    categoria_mayor = max(totales, key=totales.get)
+    categoria_menor = min(totales, key=totales.get)
+
+    print("GASTOS POR CATEGORIA")
+    categorias = list(totales.keys())
+    for i in range(len(categorias)):
+        cat = categorias[i]
+        porcentaje = totales[cat] / total_gastos * 100
+        print(i + 1, "-", cat, "-", totales[cat], "-", round(porcentaje, 2), "%")
+    print("Categoría con mayor gasto:", categoria_mayor)
+    print("Categoría con menor gasto:", categoria_menor)
+
+    ver = input("¿Desea ver el detalle de una categoría? s/n: ")
+    if ver == "s":
+        opcion = input("Seleccione el número de categoría: ")
+        while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(categorias):
+            opcion = input("Opción inválida, reingrese: ")
+        categoria_elegida = categorias[int(opcion) - 1]
+        detalle_categoria(lista_gastos, categoria_elegida, totales[categoria_elegida])
+
+def detalle_categoria(lista_gastos, categoria, total_categoria):
+    """Muestra cada gasto de una categoría y qué porcentaje representa dentro de ella."""
+    print("DETALLE DE", categoria.upper())
+    for movimiento in lista_gastos:
+        if movimiento[2] == categoria:
+            porcentaje = movimiento[0] / total_categoria * 100
+            print("Fecha:", movimiento[1], "- Monto:", movimiento[0], "-", round(porcentaje, 2), "%")
+    print("Total de la categoría:", total_categoria)
+
+
+def gastos_por_mes(lista_gastos):
+    if len(lista_gastos) == 0:
+        print("No hay gastos cargados.")
+        return
+
+    gastosMensuales = {}
+    for movimiento in lista_gastos:
+        fecha = movimiento[1]
+        partes = fecha.split("/")
+        mes = partes [1]
+        anio = partes [2]
+        mesAnio = mes + "/" + anio
+        if mesAnio not in gastosMensuales:
+            gastosMensuales[mesAnio] = 0
+        gastosMensuales[mesAnio] += movimiento[0]
+
+    print("TOTAL GASTOS POR MES")
+    for mes in gastosMensuales:
+        print(mes, "- $", gastosMensuales[mes])
+
+    mesMayor = max(gastosMensuales, key=gastosMensuales.get)
+    mesMenor = min(gastosMensuales, key=gastosMensuales.get)
+    print("Mes con mayor gasto:", mesMayor, "- $", gastosMensuales[mesMayor])
+    print("Mes con menor gasto:", mesMenor, "- $", gastosMensuales[mesMenor])
+
+
+def consulta_admin(movimientos_usuarios, usuarios):
+    """Permite al superusuario ver los movimientos de todos los usuarios."""
+    for usuario in usuarios:
+        if usuario['id_user'] in movimientos_usuarios:
+            print(f"\n=== Usuario: {usuario['user']} (ID {usuario['id_user']}) ===")
+            consulta_de_movimientos(
+                movimientos_usuarios[usuario['id_user']]["ingresos"],
+                movimientos_usuarios[usuario['id_user']]["gastos"]
+            )
+
+
+def editar_movimiento_admin(movimientos_usuarios):
+    """Permite al superusuario editar el monto de un movimiento de cualquier usuario."""
+    id_buscado = input("Ingrese el ID del usuario cuyo movimiento quiere editar: ")
+    while not id_buscado.isdigit() or int(id_buscado) not in movimientos_usuarios:
+        id_buscado = input("ID inválido, reingrese: ")
+    id_buscado = int(id_buscado)
+
+    tipo = validar_tipo()
+    clave = "ingresos" if tipo == "ingreso" else "gastos"
+    lista = movimientos_usuarios[id_buscado][clave]
+
+    print(clave.upper())
+    if len(lista) == 0:
+        print("No hay movimientos cargados.")
+        return
+    for i in range(len(lista)):
+        print(i + 1, "- Monto:", lista[i][0], "- Fecha:", lista[i][1], "- Categoría:", lista[i][2])
+
+    indice = input(f"Ingrese el número de movimiento a editar (1-{len(lista)}): ")
+    while not indice.isdigit() or int(indice) < 1 or int(indice) > len(lista):
+        indice = input("Índice inválido, reingrese: ")
+    indice = int(indice) - 1
+
+    nuevo_monto = validacion_de_monto()
+    lista[indice][0] = nuevo_monto
+    print("Movimiento actualizado con éxito.")
+
+
+def deshacer_movimiento(lista_ingresos, lista_gastos):
+    tipo = input("¿Quiere deshacer un ingreso o un gasto? ").strip().lower()
+    while tipo != "ingreso" and tipo != "gasto":
+        tipo = input("Opción inválida. Elija 'ingreso' o 'gasto': ").strip().lower()
+
+    if tipo == "ingreso":
+        if len(lista_ingresos) == 0:
+            print("No hay ingresos para deshacer.")
+            return
+        movimiento_eliminado = lista_ingresos.pop()
+
+    else:
+        if len(lista_gastos) == 0:
+            print("No hay gastos para deshacer.")
+            return
+        movimiento_eliminado = lista_gastos.pop()
+
+    print("Movimiento eliminado: ")
+    print("- Monto: ", movimiento_eliminado[0])
+    print("- Fecha: ", movimiento_eliminado[1])
+    print("- Categoría: ", movimiento_eliminado[2])
+    print("- Clase: ", movimiento_eliminado[3])
+        
+
+# PRESUPUESTO MENSUAL
+
+def mostrar_submenu_presupuesto():
+    """Muestra el submenu de presupuesto mensual y devuelve la opcion elegida."""
+    print("\n--- PRESUPUESTO MENSUAL ---")
+    print("1 - Cargar presupuesto")
+    print("2 - Consultar presupuestos")
+    print("3 - Volver al menu principal")
+    opcion = input("Seleccione una opción: ")
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 3:
+        opcion = input("Opción inválida, seleccione un numero entre 1 y 3: ")
+    return int(opcion)
+
+
+def cargar_presupuesto(presupuestos_usuarios, id_user):
+    """Pide un mes (mm/aaaa) y un monto, y guarda el presupuesto mensual del usuario.
+    Si ese mes ya tenía presupuesto, lo reemplaza."""
+    mes = input("Mes del presupuesto (mm/aaaa): ")
+    while not re.match(r"^(0[1-9]|1[0-2])/[0-9]{4}$", mes):
+        mes = input("Formato inválido, ingrese mm/aaaa: ")
+    print("Ingrese el monto que estima gastar ese mes")
+    monto = validacion_de_monto()
+    if id_user not in presupuestos_usuarios:
+        presupuestos_usuarios[id_user] = {}
+    presupuestos_usuarios[id_user][mes] = monto
+    print(f"Presupuesto de {mes} guardado: ${monto}")
+
+
+def total_gastado_en_mes(lista_gastos, mes):
+    """Suma los gastos cuya fecha corresponde al mes indicado (mm/aaaa)."""
+    gastado = 0
+    for movimiento in lista_gastos:
+        partes = movimiento[1].split("/")
+        if partes[1] + "/" + partes[2] == mes:
+            gastado += movimiento[0]
+    return gastado
+
+
+def consultar_presupuesto(presupuestos_usuarios, id_user, lista_gastos):
+    """Compara el presupuesto de cada mes con lo que el usuario realmente gastó."""
+    if id_user not in presupuestos_usuarios or len(presupuestos_usuarios[id_user]) == 0:
+        mensaje_error("No hay presupuestos cargados.")
+        return
+
+    for mes, presupuesto in presupuestos_usuarios[id_user].items():
+        gastado = total_gastado_en_mes(lista_gastos, mes)
+        diferencia = presupuesto - gastado
+        if presupuesto > 0:
+            porcentaje = gastado / presupuesto * 100
+        else:
+            porcentaje = 0
+
+        print(f"\n{NEGRITA}{mes}{RESET}")
+        print(f"  Presupuesto: {formatear_monto(presupuesto)}")
+        print(f"  Gastado:     {formatear_monto(gastado)} ({round(porcentaje, 2)}%)")
+        if diferencia >= 0:
+            mensaje_exito(f"Te quedan {formatear_monto(diferencia)}")
+        else:
+            mensaje_error(f"Te pasaste por {formatear_monto(-diferencia)}")
+
+# RESERVA E INVERSIÓN
+
+TIPOS_INVERSION = ["Plazo fijo", "Fondo de inversion", "Acciones", "Cripto", "Otros"]
+
+def seleccionar_tipo_inversion(tipos_inversion):
+    """Muestra los tipos de inversión disponibles y devuelve el elegido."""
+    for i in range(len(tipos_inversion)):
+        print(i + 1, "-", tipos_inversion[i])
+    opcion = input("Seleccione un tipo de inversión: ")
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(tipos_inversion):
+        opcion = input("Opción inválida, ingrese un número: ")
+    return tipos_inversion[int(opcion) - 1]
+
+
+def depositar_en_reserva(ahorros_usuarios, id_user):
+    """Agrega dinero a la reserva del usuario."""
+    monto = validacion_de_monto()
+    ahorros_usuarios[id_user]["reserva"] += monto
+    print(f"Reserva actualizada. Total reservado: ${ahorros_usuarios[id_user]['reserva']}")
+
+
+def depositar_en_inversion(ahorros_usuarios, id_user, tipos_inversion):
+    """Agrega dinero a un tipo de inversión elegido por el usuario."""
+    tipo = seleccionar_tipo_inversion(tipos_inversion)
+    monto = validacion_de_monto()
+    ahorros_usuarios[id_user]["inversion"][tipo] += monto
+    print(f"Inversión actualizada. Total en {tipo}: ${ahorros_usuarios[id_user]['inversion'][tipo]}")
+
+
+def consulta_ahorro_inversion(ahorros_usuarios, id_user):
+    """Muestra la reserva y las inversiones (por tipo) del usuario logueado."""
+    datos = ahorros_usuarios[id_user]
+    print("\nRESERVA")
+    print("Total reservado:", datos["reserva"])
+
+    print("\nINVERSIONES")
+    hay_inversiones = False
+    for tipo, monto in datos["inversion"].items():
+        if monto > 0:
+            hay_inversiones = True
+            print(f"{tipo}: ${monto}")
+    if not hay_inversiones:
+        print("No hay inversiones cargadas.")
+
+    total_invertido = sum(datos["inversion"].values())
+    print(f"\nTotal invertido: ${total_invertido}")
+    print(f"Total general (reserva + inversión): ${datos['reserva'] + total_invertido}")
+
+
+
+"""Main"""
+#cargarlo en un json:
+#usuarios = [
+#    ("lucia", "pedros", 1, "usuario"),
+#    ("jaz", "racyces", 2, "usuario"),
+#    ("blas", "macias", 3, "usuario"),
+#    ("lucas", "pezzano", 4, "usuario"),
+#    ("admin", "admin1234", 0, "admin"),
+#]
+
+usuarios = cargar_usuarios()
+#print(usuarios)
+
+categorias_gastos_fijos = ["Alquiler","Servicios","Suscripciones","Impuestos"]
+categorias_gastos_variables = ["Supermercado","Bares/Restaurantes","Transporte","Combustible","Salud","Educacion","Ocio/Entretenimiento","Regalos","Otros gastos"]
+categorias_ingresos_fijos = ["Sueldo"]
+categorias_ingresos_variables = ["Freelance","Ventas","Inversiones","Reintegros","Regalos","Otros ingresos"]
+
+movimientos_usuarios = {}   # id_user -> {"ingresos": [...], "gastos": [...]}
+ahorros_usuarios = {}       # id_user -> {"reserva": monto, "inversion": {tipo: monto, ...}}
+presupuestos_usuarios = {}  # id_user -> {"mm/aaaa": monto, ...}
+
+titulo("BIENVENIDO A FINANZAPP")
+print()
+
+nombre, id_user = acceso(usuarios)
+rol = obtener_rol(usuarios, id_user)
+inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios, TIPOS_INVERSION)
+
+if rol == "admin":
+    opcion = mostrar_menu_admin()
+    while opcion != 3:
+        if opcion == 1:
+            consulta_admin(movimientos_usuarios, usuarios)
+        elif opcion == 2:
+            editar_movimiento_admin(movimientos_usuarios)
+        opcion = mostrar_menu_admin()
+
+else:
+    pausar()
+    opcion = mostrar_menu_usuario(nombre)
+    while opcion != 9:
+        if opcion == 1:
+            tipo = validar_tipo()
+            nuevo_movimiento = registro_movimientos(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables)
+            guardar_movimientos(
+                nuevo_movimiento,
+                tipo,
+                movimientos_usuarios[id_user]["ingresos"],
+                movimientos_usuarios[id_user]["gastos"]
+            )
+
+        elif opcion == 2:
+            subOpcion = input("Ingrese 1 si quiere ver todos los movimientos o 2 si quiere consultar por un intervalo de fechas: ")
+            while not subOpcion.isdigit() or int(subOpcion) < 1 or int(subOpcion) > 2:
+                subOpcion = input("Opción inválida, seleccione 1 o 2: ")
+            subOpcion = int(subOpcion)
+            if subOpcion == 1:
+                consulta_de_movimientos(movimientos_usuarios[id_user]["ingresos"], movimientos_usuarios[id_user]["gastos"])
+            elif subOpcion == 2:
+                movimientos_por_intervalo(movimientos_usuarios[id_user]["ingresos"], movimientos_usuarios[id_user]["gastos"])
+
+        elif opcion == 3:
+            total_ingresos, total_gastos, balance_acumulado = calculo_movimientos(
+                movimientos_usuarios[id_user]["ingresos"],
+                movimientos_usuarios[id_user]["gastos"]
+            )
+            print("Total de ingresos:", total_ingresos)
+            print("Total de gastos:", total_gastos)
+            print("Balance acumulado: ", balance_acumulado)
+
+        elif opcion == 4:
+            sub_opcion = mostrar_submenu_ahorro()
+            while sub_opcion != 3:
+                if sub_opcion == 1:
+                    depositar_en_reserva(ahorros_usuarios, id_user)
+                elif sub_opcion == 2:
+                    depositar_en_inversion(ahorros_usuarios, id_user, TIPOS_INVERSION)
+                sub_opcion = mostrar_submenu_ahorro()
+
+        elif opcion == 5:
+            consulta_ahorro_inversion(ahorros_usuarios, id_user)
+
+        elif opcion == 6:
+            subOpcion = input("Ingrese 1 para ver gastos por categoria o 2 para ver gastos por mes: ")
+            while not subOpcion.isdigit() or int(subOpcion) < 1 or int(subOpcion) > 2:
+                subOpcion = input("Opción inválida, seleccione 1 o 2: ")
+            subOpcion = int(subOpcion)
+            if subOpcion == 1:
+                gastos_por_categoria(movimientos_usuarios[id_user]["gastos"])
+            elif subOpcion == 2:
+                gastos_por_mes(movimientos_usuarios[id_user]["gastos"])
+
+        elif opcion == 7:
+            deshacer_movimiento(movimientos_usuarios[id_user]["ingresos"], movimientos_usuarios[id_user]["gastos"])
+        elif opcion == 8:
+            sub_opcion = mostrar_submenu_presupuesto()
+            while sub_opcion != 3:
+                if sub_opcion == 1:
+                    cargar_presupuesto(presupuestos_usuarios, id_user)
+                elif sub_opcion == 2:
+                    consultar_presupuesto(presupuestos_usuarios, id_user, movimientos_usuarios[id_user]["gastos"])
+                sub_opcion = mostrar_submenu_presupuesto()
+
+        opcion = mostrar_menu_usuario(nombre)
+
+mensaje_exito("Gracias por usar Finanzapp!")
