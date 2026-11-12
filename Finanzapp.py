@@ -108,7 +108,7 @@ def crear_usuario(usuarios):
 def iniciar_sesion(usuarios):
     """Valida nombre y contraseña de un usuario existente. Si no existe, ofrece crear uno nuevo."""
     print("Iniciando sesión...")
-    nombre = input("Ingrese el nombre: ")
+    nombre = input("Ingrese el nombre: ").lower()
     usuario_encontrado = False
     password_correcta = ""
     id_user = None
