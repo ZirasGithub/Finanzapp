@@ -15,6 +15,61 @@ def cargar_usuarios():
         usuarios = json.load(archivo)
     return usuarios
 
+def obtener_ruta(nombre_archivo):
+    """Devuelve la ruta completa de un archivo que está junto a Finanzapp.py."""
+    return os.path.join(os.path.dirname(__file__), nombre_archivo)
+
+
+def guardar_json(nombre_archivo, datos):
+    """Guarda datos (diccionario o lista) en un archivo JSON. Devuelve True si pudo guardar, False si falló."""
+    try:
+        with open(obtener_ruta(nombre_archivo), "w") as archivo:
+            json.dump(datos, archivo, indent=4)
+        return True
+    except OSError as error:
+        print("No se pudo guardar", nombre_archivo, "-", error)
+        return False
+
+
+def cargar_json(nombre_archivo, valor_por_defecto):
+    """Lee un archivo JSON. Si no existe o está dañado, devuelve valor_por_defecto."""
+    try:
+        with open(obtener_ruta(nombre_archivo), "r") as archivo:
+            return json.load(archivo)
+    except FileNotFoundError:
+        return valor_por_defecto
+    except json.JSONDecodeError:
+        print("El archivo", nombre_archivo, "está dañado, se empieza sin datos guardados.")
+        return valor_por_defecto
+
+
+
+def cargar_datos_guardados():
+    """Carga movimientos, ahorros y presupuestos guardados."""
+    movimientos = cargar_json("movimientos.json", {})
+    ahorros = cargar_json("ahorros.json", {})
+    presupuestos = cargar_json("presupuestos.json", {})
+
+    movimientos_usuarios = {
+        int(id_u): datos for id_u, datos in movimientos.items()
+    }
+
+    ahorros_usuarios = {
+        int(id_u): datos for id_u, datos in ahorros.items()
+    }
+
+    presupuestos_usuarios = {
+        int(id_u): datos for id_u, datos in presupuestos.items()
+    }
+
+    return movimientos_usuarios, ahorros_usuarios, presupuestos_usuarios
+
+
+def guardar_datos(movimientos_usuarios, ahorros_usuarios, presupuestos_usuarios):
+    """Guarda los movimientos, ahorros y presupuestos de todos los usuarios."""
+    guardar_json("movimientos.json", movimientos_usuarios)
+    guardar_json("ahorros.json", ahorros_usuarios)
+    guardar_json("presupuestos.json", presupuestos_usuarios)
 
 def mostrar_menu_usuario():
     """Muestra el menú principal de un usuario común y devuelve la opción elegida."""
@@ -628,15 +683,21 @@ categorias_gastos_variables = ["Supermercado","Bares/Restaurantes","Transporte",
 categorias_ingresos_fijos = ["Sueldo"]
 categorias_ingresos_variables = ["Freelance","Ventas","Inversiones","Reintegros","Regalos","Otros ingresos"]
 
-movimientos_usuarios = {}   # id_user -> {"ingresos": [...], "gastos": [...]}
-ahorros_usuarios = {}       # id_user -> {"reserva": monto, "inversion": {tipo: monto, ...}}
-presupuestos_usuarios = {}  # id_user -> {"mm/aaaa": monto, ...}
+# movimientos: id_user -> {"ingresos": [...], "gastos": [...]}
+# ahorros: id_user -> {"reserva": monto, "inversion": {tipo: monto, ...}}
+#presupuestos:  id_user -> {"mm/aaaa": monto, ...}
+movimientos_usuarios, ahorros_usuarios, presupuestos_usuarios = cargar_datos_guardados()
+
+
 
 print("Bienvenido a Finanzapp!")
 
 nombre, id_user = acceso(usuarios)
 rol = obtener_rol(usuarios, id_user)
 inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios, TIPOS_INVERSION)
+presupuestos_usuarios.setdefault(id_user, {})
+guardar_datos(movimientos_usuarios, ahorros_usuarios, presupuestos_usuarios)
+
 
 if rol == "admin":
     opcion = mostrar_menu_admin()
@@ -645,9 +706,11 @@ if rol == "admin":
             consulta_admin(movimientos_usuarios, usuarios)
         elif opcion == 2:
             editar_movimiento_admin(movimientos_usuarios)
-        opcion = mostrar_menu_admin()
 
+        guardar_datos(movimientos_usuarios, ahorros_usuarios, presupuestos_usuarios)
+        opcion = mostrar_menu_admin()
 else:
+    guardar_datos(movimientos_usuarios, ahorros_usuarios, presupuestos_usuarios)
     opcion = mostrar_menu_usuario()
     while opcion != 9:
         if opcion == 1:
@@ -712,6 +775,8 @@ else:
                     consultar_presupuesto(presupuestos_usuarios, id_user, movimientos_usuarios[id_user]["gastos"])
                 sub_opcion = mostrar_submenu_presupuesto()
 
+        
+        guardar_datos(movimientos_usuarios, ahorros_usuarios, presupuestos_usuarios)
         opcion = mostrar_menu_usuario()
 
 print("Gracias por usar Finanzapp!")

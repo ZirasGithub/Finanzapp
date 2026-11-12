@@ -1,0 +1,42 @@
+{
+    "7": {
+        "reserva": 0.0,
+        "inversion": {
+            "Plazo fijo": 0.0,
+            "Fondo de inversion": 0.0,
+            "Acciones": 0.0,
+            "Cripto": 0.0,
+            "Otros": 0.0
+        }
+    },
+    "1": {
+        "reserva": 800000.0,
+        "inversion": {
+            "Plazo fijo": 0.0,
+            "Fondo de inversion": 0.0,
+            "Acciones": 0.0,
+            "Cripto": 0.0,
+            "Otros": 0.0
+        }
+    },
+    "0": {
+        "reserva": 0.0,
+        "inversion": {
+            "Plazo fijo": 0.0,
+            "Fondo de inversion": 0.0,
+            "Acciones": 0.0,
+            "Cripto": 0.0,
+            "Otros": 0.0
+        }
+    },
+    "4": {
+        "reserva": 0.0,
+        "inversion": {
+            "Plazo fijo": 0.0,
+            "Fondo de inversion": 0.0,
+            "Acciones": 0.0,
+            "Cripto": 0.0,
+            "Otros": 0.0
+        }
+    }
+}
