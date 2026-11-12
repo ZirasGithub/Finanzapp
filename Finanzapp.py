@@ -1,7 +1,3 @@
-
-
-"""Recuerden que tienen que hacer anotaciones docstring después de cada función, explicando qué hace cada una"""
-"""Evitar usar funciones globales, todas las funciones deben recibir sus parámetros"""
 #=======================================
 #=========      FINANZAPP      =========       
 #=======================================
@@ -9,11 +5,7 @@ import os
 import re
 import json
 
-TIPOS_INVERSION = ["Plazo fijo", "Fondo de inversion", "Acciones", "Cripto", "Otros"]
 
-
-
-    
 def cargar_usuarios():
     """Lee el archivo usuarios.json y devuelve la lista de usuarios."""
     ruta_actual = os.path.dirname(__file__)
@@ -22,6 +14,7 @@ def cargar_usuarios():
     with open(ruta_archivo, "r") as archivo:
         usuarios = json.load(archivo)
     return usuarios
+
 
 def mostrar_menu_usuario():
     """Muestra el menú principal de un usuario común y devuelve la opción elegida."""
@@ -32,11 +25,13 @@ def mostrar_menu_usuario():
     print("4 - Ahorro / Inversion")
     print("5 - Ver ahorros e inversiones")
     print("6 - Gastos por categoria")
-    print("7 - Salir")
+    print("7 - Deshacer ultimo movimiento")
+    print("8 - Salir")
     opcion = input("Seleccione una opción: ")
-    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 7:
+    while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > 8:
         opcion = input("Opción inválida, seleccione un número entre 1 y 7: ")
     return int(opcion)
+
 
 def mostrar_submenu_ahorro():
     """Muestra el submenu de ahorro e inversion y devuelve la opcion elegida"""
@@ -65,16 +60,13 @@ def mostrar_menu_admin():
 
 #creamos los usuarios con esta funcion, validando si los mismos ya existen o no en la lista "usuarios"
 def crear_usuario(usuarios):
-    #Crea un usuario nuevo validando que el nombre no exista y que el password tenga más de 6 caracteres.
-    #Devuelve el nombre y el id del usuario creado.
+    """Crea un usuario nuevo validando que el nombre no exista y que el password tenga más de 6 caracteres.
+    Devuelve el nombre y el id del usuario creado."""
     print("Creando usuario...")
     
-    
-            
     nombres_existentes = {usuario['user'] for usuario in usuarios}
     print(nombres_existentes)
     
-  
     user = input("Ingrese el nombre: ")
     
     while user in nombres_existentes:
@@ -113,13 +105,12 @@ def crear_usuario(usuarios):
 
 #realizamos inicio de sesion y validamos que exista (en caso de no existir, pasamos a crearlo)
 def iniciar_sesion(usuarios):
-    #Valida nombre y contraseña de un usuario existente. Si no existe, ofrece crear uno nuevo.
+    """Valida nombre y contraseña de un usuario existente. Si no existe, ofrece crear uno nuevo."""
     print("Iniciando sesión...")
     nombre = input("Ingrese el nombre: ")
     usuario_encontrado = False
     password_correcta = ""
     id_user = None
-    
     
     for usuario in usuarios:
         if nombre == usuario['user']:
@@ -152,9 +143,8 @@ def iniciar_sesion(usuarios):
         return None
 
 
-
 def acceso(usuarios):
-    #Punto de entrada: permite iniciar sesión o crear un usuario hasta lograr acceso
+    """Punto de entrada: permite iniciar sesión o crear un usuario hasta lograr acceso."""
     resultado = None
     while resultado is None:
         opcion = input("1 - Iniciar sesión\n2 - Crear usuario\nSeleccione una opción: ")
@@ -163,8 +153,9 @@ def acceso(usuarios):
         resultado = iniciar_sesion(usuarios) if opcion == "1" else crear_usuario(usuarios)
     return resultado
 
+
 def obtener_rol(usuarios, id_user):
-    #Devuelve el rol ('usuario' o 'admin') correspondiente a un id de usuario.
+    """Devuelve el rol ('usuario' o 'admin') correspondiente a un id de usuario."""
     for usuario in usuarios:
         if usuario['id_user'] == id_user:
             return usuario['rol']
@@ -179,8 +170,9 @@ def inicializar_datos_usuario(id_user, movimientos_usuarios, ahorros_usuarios, t
         inversiones_iniciales = {tipo: 0.0 for tipo in tipos_inversion}
         ahorros_usuarios[id_user] = {"reserva": 0.0, "inversion": inversiones_iniciales}
 
+
 def registro_movimientos(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables):
-    #Registra los movimientos en listas, dependiendo el tipo
+    """Registra los movimientos en listas, dependiendo el tipo."""
     monto = validacion_de_monto()
     fecha = validacion_de_fecha()
     categoria, clase_movimiento = seleccionar_categoria(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables)
@@ -189,7 +181,7 @@ def registro_movimientos(tipo, categorias_gastos_fijos, categorias_gastos_variab
 
 
 def validar_tipo():
-    #Valida que el tipo de movimiento sea ingreso o gasto.
+    """Valida que el tipo de movimiento sea ingreso o gasto."""
     tipo = input("¿Quiere registrar un ingreso o un gasto? ").strip().lower()
     while tipo != "ingreso" and tipo != "gasto":
         tipo = input("Opción inválida. Elija 'ingreso' o 'gasto': ").strip().lower()
@@ -197,7 +189,7 @@ def validar_tipo():
 
 
 def guardar_movimientos(movimientos, tipo, lista_ingresos, lista_gastos):
-    #Guarda los movimientos en lista_ingresos o lista_gastos
+    """Guarda los movimientos en lista_ingresos o lista_gastos."""
     if tipo == "ingreso":
         lista_ingresos.append(movimientos)
     else:
@@ -205,7 +197,7 @@ def guardar_movimientos(movimientos, tipo, lista_ingresos, lista_gastos):
 
 
 def registro_categoria_nueva(categoria, tipo, clase_movimiento, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables):
-    #Agrega una categoria nueva a la lista correspondiente
+    """Agrega una categoria nueva a la lista correspondiente."""
     if tipo == "gasto" and clase_movimiento == "fijo":
         categorias_gastos_fijos.append(categoria)
     elif tipo == "gasto" and clase_movimiento == "variable":
@@ -217,7 +209,7 @@ def registro_categoria_nueva(categoria, tipo, clase_movimiento, categorias_gasto
 
 
 def seleccionar_categoria(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables):
-    #Permite elegir una categoría existente o crear una nueva.
+    """Permite elegir una categoría existente o crear una nueva."""
     if tipo == "gasto":
         categorias = categorias_gastos_fijos + categorias_gastos_variables
     else:
@@ -250,7 +242,7 @@ def seleccionar_categoria(tipo, categorias_gastos_fijos, categorias_gastos_varia
 
 
 def validacion_de_monto():
-    #Pide el monto y controla si es correcto y no es un número negativo.
+    """#Pide el monto y controla si es correcto y no es un número negativo."""
     monto = input("Monto: ")
     while not monto.replace(",", "", 1).isdigit():
         monto = input("El monto es inválido, reingrese: ")
@@ -258,7 +250,7 @@ def validacion_de_monto():
 
 
 def validacion_de_fecha():
-    #Pide la fecha y controla que tenga un formato y valores válidos.
+    """Pide la fecha y controla que tenga un formato y valores válidos."""
     fecha = input("Fecha (dd/mm/aaaa): ")
     patron = r"^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}$"
     while re.match(patron, fecha) == None:
@@ -283,7 +275,7 @@ def sumar (x,y):
     return x+y
 
 def calculo_movimientos(lista_ingresos, lista_gastos):
-    #Calcula el total de los ingresos y de los gastos + el balance acumulado.
+    """Calcula el total de los ingresos y de los gastos + el balance acumulado."""
     montos_ingresos = map(lambda movimiento : movimiento[0], lista_ingresos)
     montos_gastos = map(lambda movimiento: movimiento[0], lista_gastos)
     suma_ingresos = reduce(sumar, montos_ingresos, 0)
@@ -293,7 +285,7 @@ def calculo_movimientos(lista_ingresos, lista_gastos):
     
 
 def consulta_de_movimientos(lista_ingresos, lista_gastos):
-    #Muestra los ingresos y gastos registrados.
+    """Muestra los ingresos y gastos registrados."""
     print("INGRESOS")
     if len(lista_ingresos) == 0:
         print("No hay ingresos cargados.")
@@ -317,6 +309,7 @@ def consulta_de_movimientos(lista_ingresos, lista_gastos):
                 "- Categoría:", movimiento[2],
                 "- Clase:", movimiento[3]
             )
+
 
 def gastos_por_categoria(lista_gastos):
     """Muestra el total y el porcentaje de cada categoría sobre el total de gastos.
@@ -361,6 +354,7 @@ def detalle_categoria(lista_gastos, categoria, total_categoria):
             print("Fecha:", movimiento[1], "- Monto:", movimiento[0], "-", round(porcentaje, 2), "%")
     print("Total de la categoría:", total_categoria)
 
+
 def consulta_admin(movimientos_usuarios, usuarios):
     """Permite al superusuario ver los movimientos de todos los usuarios."""
     for usuario in usuarios:
@@ -372,9 +366,8 @@ def consulta_admin(movimientos_usuarios, usuarios):
             )
 
 
-
 def editar_movimiento_admin(movimientos_usuarios):
-    #Permite al superusuario editar el monto de un movimiento de cualquier usuario.
+    """Permite al superusuario editar el monto de un movimiento de cualquier usuario."""
     id_buscado = input("Ingrese el ID del usuario cuyo movimiento quiere editar: ")
     while not id_buscado.isdigit() or int(id_buscado) not in movimientos_usuarios:
         id_buscado = input("ID inválido, reingrese: ")
@@ -400,8 +393,35 @@ def editar_movimiento_admin(movimientos_usuarios):
     lista[indice][0] = nuevo_monto
     print("Movimiento actualizado con éxito.")
 
-# RESERVA E INVERSIÓN 
 
+def deshacer_movimiento(lista_ingresos, lista_gastos):
+    tipo = input("¿Quiere deshacer un ingreso o un gasto? ").strip().lower()
+    while tipo != "ingreso" and tipo != "gasto":
+        tipo = input("Opción inválida. Elija 'ingreso' o 'gasto': ").strip().lower()
+
+    if tipo == "ingreso":
+        if len(lista_ingresos) == 0:
+            print("No hay ingresos para deshacer.")
+            return
+        movimiento_eliminado = lista_ingresos.pop()
+
+    else:
+        if len(lista_gastos) == 0:
+            print("No hay gastos para deshacer.")
+            return
+        movimiento_eliminado = lista_gastos.pop()
+
+    print("Movimiento eliminado: ")
+    print("- Monto: ", movimiento_eliminado[0])
+    print("- Fecha: ", movimiento_eliminado[1])
+    print("- Categoría: ", movimiento_eliminado[2])
+    print("- Clase: ", movimiento_eliminado[3])
+        
+
+
+# RESERVA E INVERSIÓN
+
+TIPOS_INVERSION = ["Plazo fijo", "Fondo de inversion", "Acciones", "Cripto", "Otros"]
 
 def seleccionar_tipo_inversion(tipos_inversion):
     """Muestra los tipos de inversión disponibles y devuelve el elegido."""
@@ -411,6 +431,8 @@ def seleccionar_tipo_inversion(tipos_inversion):
     while not opcion.isdigit() or int(opcion) < 1 or int(opcion) > len(tipos_inversion):
         opcion = input("Opción inválida, ingrese un número: ")
     return tipos_inversion[int(opcion) - 1]
+
+
 def depositar_en_reserva(ahorros_usuarios, id_user):
     #Agrega dinero a la reserva del usuario.
     monto = validacion_de_monto()
@@ -425,8 +447,9 @@ def depositar_en_inversion(ahorros_usuarios, id_user, tipos_inversion):
     ahorros_usuarios[id_user]["inversion"][tipo] += monto
     print(f"Inversión actualizada. Total en {tipo}: ${ahorros_usuarios[id_user]['inversion'][tipo]}")
 
+
 def consulta_ahorro_inversion(ahorros_usuarios, id_user):
-    #Muestra la reserva y las inversiones (por tipo) del usuario logueado.
+    """Muestra la reserva y las inversiones (por tipo) del usuario logueado."""
     datos = ahorros_usuarios[id_user]
     print("\nRESERVA")
     print("Total reservado:", datos["reserva"])
@@ -443,6 +466,7 @@ def consulta_ahorro_inversion(ahorros_usuarios, id_user):
     total_invertido = sum(datos["inversion"].values())
     print(f"\nTotal invertido: ${total_invertido}")
     print(f"Total general (reserva + inversión): ${datos['reserva'] + total_invertido}")
+
 
 
 """Main"""
@@ -483,7 +507,7 @@ if rol == "admin":
 
 else:
     opcion = mostrar_menu_usuario()
-    while opcion != 7:
+    while opcion != 8:
         if opcion == 1:
             tipo = validar_tipo()
             nuevo_movimiento = registro_movimientos(tipo, categorias_gastos_fijos, categorias_gastos_variables, categorias_ingresos_fijos, categorias_ingresos_variables)
@@ -518,7 +542,8 @@ else:
             consulta_ahorro_inversion(ahorros_usuarios, id_user)
         elif opcion == 6:
             gastos_por_categoria(movimientos_usuarios[id_user]["gastos"])
+        elif opcion == 7:
+            deshacer_movimiento(movimientos_usuarios[id_user]["ingresos"], movimientos_usuarios[id_user]["gastos"])
         opcion = mostrar_menu_usuario()
 
 print("Gracias por usar Finanzapp!")
-
