@@ -24,7 +24,7 @@ def mostrar_menu_usuario():
     print("3 - Ver totales")
     print("4 - Ahorro / Inversion")
     print("5 - Ver ahorros e inversiones")
-    print("6 - Gastos por categoria")
+    print("6 - Analizar gastos por categoria o por mes")
     print("7 - Deshacer ultimo movimiento")
     print("8 - Salir")
     opcion = input("Seleccione una opción: ")
@@ -410,6 +410,32 @@ def detalle_categoria(lista_gastos, categoria, total_categoria):
     print("Total de la categoría:", total_categoria)
 
 
+def gastos_por_mes(lista_gastos):
+    if len(lista_gastos) == 0:
+        print("No hay gastos cargados.")
+        return
+
+    gastosMensuales = {}
+    for movimiento in lista_gastos:
+        fecha = movimiento[1]
+        partes = fecha.split("/")
+        mes = partes [1]
+        anio = partes [2]
+        mesAnio = mes + "/" + anio
+        if mesAnio not in gastosMensuales:
+            gastosMensuales[mesAnio] = 0
+        gastosMensuales[mesAnio] += movimiento[0]
+
+    print("TOTAL GASTOS POR MES")
+    for mes in gastosMensuales:
+        print(mes, "- $", gastosMensuales[mes])
+
+    mesMayor = max(gastosMensuales, key=gastosMensuales.get)
+    mesMenor = min(gastosMensuales, key=gastosMensuales.get)
+    print("Mes con mayor gasto:", mesMayor, "- $", gastosMensuales[mesMayor])
+    print("Mes con menor gasto:", mesMenor, "- $", gastosMensuales[mesMenor])
+
+
 def consulta_admin(movimientos_usuarios, usuarios):
     """Permite al superusuario ver los movimientos de todos los usuarios."""
     for usuario in usuarios:
@@ -605,7 +631,14 @@ else:
             consulta_ahorro_inversion(ahorros_usuarios, id_user)
 
         elif opcion == 6:
-            gastos_por_categoria(movimientos_usuarios[id_user]["gastos"])
+            subOpcion = input("Ingrese 1 para ver gastos por categoria o 2 para ver gastos por mes: ")
+            while not subOpcion.isdigit() or int(subOpcion) < 1 or int(subOpcion) > 2:
+                subOpcion = input("Opción inválida, seleccione 1 o 2: ")
+            subOpcion = int(subOpcion)
+            if subOpcion == 1:
+                gastos_por_categoria(movimientos_usuarios[id_user]["gastos"])
+            elif subOpcion == 2:
+                gastos_por_mes(movimientos_usuarios[id_user]["gastos"])
 
         elif opcion == 7:
             deshacer_movimiento(movimientos_usuarios[id_user]["ingresos"], movimientos_usuarios[id_user]["gastos"])
