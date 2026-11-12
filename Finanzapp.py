@@ -332,12 +332,17 @@ def gastos_por_categoria(lista_gastos):
         totales[categoria] = totales.get(categoria, 0) + movimiento[0]
         total_gastos += movimiento[0]
 
+    categoria_mayor = max(totales, key=totales.get)
+    categoria_menor = min(totales, key=totales.get)
+
     print("GASTOS POR CATEGORIA")
     categorias = list(totales.keys())
     for i in range(len(categorias)):
         cat = categorias[i]
         porcentaje = totales[cat] / total_gastos * 100
         print(i + 1, "-", cat, "-", totales[cat], "-", round(porcentaje, 2), "%")
+    print("Categoría con mayor gasto:", categoria_mayor)
+    print("Categoría con menor gasto:", categoria_menor)
 
     ver = input("¿Desea ver el detalle de una categoría? s/n: ")
     if ver == "s":
